@@ -230,9 +230,9 @@
 // IMPORTANT
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // please uncomment only 1 choice
-#define BAND868
+//#define BAND868
 //#define BAND900
-//#define BAND433
+#define BAND433
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // For a Raspberry-based gateway the distribution uses a radio.makefile file that can define MAX_DBM
@@ -379,7 +379,7 @@ uint32_t loraChannelArray[MAX_NB_CHANNEL]={CH_00_433,CH_01_433,CH_02_433,CH_03_4
 #define UNLOCK_PIN 1234
 // will use 0xFF0xFE to prefix data received from LoRa, so that post-processing stage can differenciate
 // data received from radio
-#define WITH_DATA_PREFIX
+//#define WITH_DATA_PREFIX
 
 #ifdef WITH_DATA_PREFIX
 #define DATA_PREFIX_0 0xFF
@@ -496,6 +496,8 @@ void startConfig() {
     PRINT_VALUE("%d", e);
     PRINTLN;
 
+    e = sx1272.setCRC_ON();
+
     e = sx1272.setSF(optSF);
     PRINT_CSTSTR("%s","^$LoRa SF ");
     PRINT_VALUE("%d", optSF);    
@@ -503,7 +505,11 @@ void startConfig() {
     PRINT_VALUE("%d", e);
     PRINTLN;
     
-    e = sx1272.setBW( (optBW==125)?BW_125:((optBW==250)?BW_250:BW_500) );
+    if (optBW == 7) {
+        e = sx1272.setBW( BW_7_8 );
+    } else {
+        e = sx1272.setBW( (optBW==125)?BW_125:((optBW==250)?BW_250:BW_500) );
+    }
     PRINT_CSTSTR("%s","^$LoRa BW ");
     PRINT_VALUE("%d", optBW);    
     PRINT_CSTSTR("%s",": state ");
@@ -1041,10 +1047,14 @@ void loop(void)
              radioON=false;
              PRINT_CSTSTR("%s","^$Resetting radio module");
              PRINTLN;
+#if 0
              e = sx1272.ON();
              PRINT_CSTSTR("%s","^$Setting power ON: state ");
              PRINT_VALUE("%d",e);
              PRINTLN;
+#else
+             setup();
+#endif
 
              if (!e) {
                radioON=true;
@@ -1199,8 +1209,8 @@ void loop(void)
            PRINT_CSTSTR("%s","No LAS header. Write raw data\n");
 #else
 #if defined WITH_DATA_PREFIX && not defined GW_RELAY
-         PRINT_STR("%c",(char)DATA_PREFIX_0);        
-         PRINT_STR("%c",(char)DATA_PREFIX_1);
+         PRINT_STR("%02X",(char)DATA_PREFIX_0);
+         PRINT_STR("%02X",(char)DATA_PREFIX_1);
 #endif
 #endif
 

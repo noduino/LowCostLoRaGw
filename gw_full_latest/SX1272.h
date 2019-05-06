@@ -51,13 +51,13 @@
 #define W_REQUESTED_ACK
 //#define W_NET_KEY
 //#define W_INITIALIZATION
-#define SX1272_RST  7
+#define SX1272_RST  7	//raspi 17
 
 #define SX1272Chip  0
 #define SX1276Chip  1
 // end
 
-#define SX1272_SS 10
+#define SX1272_SS 10	//raspi 8
 
 #define SX1272_debug_mode 0
 

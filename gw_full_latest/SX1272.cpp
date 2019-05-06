@@ -230,9 +230,9 @@ uint8_t SX1272::ON()
 
     // added by C. Pham
     pinMode(SX1272_RST,OUTPUT);
-    digitalWrite(SX1272_RST,HIGH);
-    delay(100);
     digitalWrite(SX1272_RST,LOW);
+    delay(100);
+    digitalWrite(SX1272_RST,HIGH);
     delay(100);
 
     // from single_chan_pkt_fwd by Thomas Telkamp
@@ -2182,6 +2182,10 @@ int8_t	SX1272::setBW(uint16_t band)
             // 1001
             config1 = config1 | 0B10010000;
             break;
+        case BW_7_8:
+            // 1001
+            config1 = config1 | 0B00000000;
+            break;
         }
     }
     // end
@@ -2276,6 +2280,11 @@ int8_t	SX1272::setBW(uint16_t band)
             }
             break;
         case BW_500: if( (config1 >> 4) == BW_500 )
+            {
+                state = 0;
+            }
+            break;
+        case BW_7_8: if( (config1 >> 4) == BW_7_8 )
             {
                 state = 0;
             }
