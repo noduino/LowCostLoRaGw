@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#sudo ./gw_fll_latest/lora_gateway -d 6 -e 12 -c 125 -i 34 -h 2 -f -g 433.3
+sudo ./gw_full_latest/lora_gateway -d 5 -e 12 -c 125 -i 34 -h 2 -f -g 434.3
