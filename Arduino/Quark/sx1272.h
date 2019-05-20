@@ -30,10 +30,6 @@
 #ifndef SX1272_h
 #define SX1272_h
 
-/******************************************************************************
- * Includes
- ******************************************************************************/
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <Arduino.h>
@@ -42,10 +38,6 @@
 #ifndef inttypes_h
 #include <inttypes.h>
 #endif
-
-/******************************************************************************
- * Definitions & Declarations
- *****************************************************************************/
 
 // added by C. Pham
 // do not remove!
@@ -234,18 +226,16 @@
 #define RH_LORA_FCONVERT  (524288 / RH_LORA_FXOSC)
 
 // Frf = frf(Hz)*2^19/RH_LORA_FXOSC
-
-/////
+// Reg = Freq / 61.03515625
 
 //FREQUENCY CHANNELS:
-// added by C. Pham for Senegal
 const uint32_t CH_04_868 = 0xD7CCCC;	// channel 04, central freq = 863.20MHz
 const uint32_t CH_05_868 = 0xD7E000;	// channel 05, central freq = 863.50MHz
 const uint32_t CH_06_868 = 0xD7F333;	// channel 06, central freq = 863.80MHz
 const uint32_t CH_07_868 = 0xD80666;	// channel 07, central freq = 864.10MHz
 const uint32_t CH_08_868 = 0xD81999;	// channel 08, central freq = 864.40MHz
 const uint32_t CH_09_868 = 0xD82CCC;	// channel 09, central freq = 864.70MHz
-//
+
 const uint32_t CH_10_868 = 0xD84CCC;	// channel 10, central freq = 865.20MHz, = 865200000*RH_LORA_FCONVERT
 const uint32_t CH_11_868 = 0xD86000;	// channel 11, central freq = 865.50MHz
 const uint32_t CH_12_868 = 0xD87333;	// channel 12, central freq = 865.80MHz
@@ -255,9 +245,8 @@ const uint32_t CH_15_868 = 0xD8ACCC;	// channel 15, central freq = 866.70MHz
 const uint32_t CH_16_868 = 0xD8C000;	// channel 16, central freq = 867.00MHz
 const uint32_t CH_17_868 = 0xD90000;	// channel 17, central freq = 868.00MHz
 
-// added by C. Pham
 const uint32_t CH_18_868 = 0xD90666;	// 868.1MHz for LoRaWAN test
-// end
+
 const uint32_t CH_00_900 = 0xE1C51E;	// channel 00, central freq = 903.08MHz
 const uint32_t CH_01_900 = 0xE24F5C;	// channel 01, central freq = 905.24MHz
 const uint32_t CH_02_900 = 0xE2D999;	// channel 02, central freq = 907.40MHz
@@ -272,12 +261,14 @@ const uint32_t CH_10_900 = 0xE72B85;	// channel 10, central freq = 924.68MHz
 const uint32_t CH_11_900 = 0xE7B5C2;	// channel 11, central freq = 926.84MHz
 const uint32_t CH_12_900 = 0xE4C000;	// default channel 915MHz, the module is configured with it
 
-// added by C. Pham
 const uint32_t CH_00_433 = 0x6C5333;	// 433.3MHz
 const uint32_t CH_01_433 = 0x6C6666;	// 433.6MHz
 const uint32_t CH_02_433 = 0x6C7999;	// 433.9MHz
 const uint32_t CH_03_433 = 0x6C9333;	// 434.3MHz
-// end
+
+const uint32_t CH_00_144 = 0x240000;	// 144.000MHz
+const uint32_t CH_01_144 = 0x241000;	// 144.250MHz
+const uint32_t CH_02_144 = 0x242000;	// 144.500MHz
 
 //LORA BANDWIDTH:
 // modified by C. Pham
