@@ -22,10 +22,6 @@
  *  Implementation:    Covadonga Albiñana & Victor Boria
  */
 
-//**********************************************************************/
-// Includes
-//**********************************************************************/
-
 #include "SX1272.h"
 #include <SPI.h>
 
@@ -129,12 +125,6 @@ uint8_t sx1272_CAD_value[11] = { 0, 62, 31, 16, 16, 8, 9, 5, 3, 1, 1 };
 // 4 min for testing
 //#define DUTYCYCLE_DURATION 240000L
 
-// end
-
-//**********************************************************************/
-// Public functions.
-//**********************************************************************/
-
 SX1272::SX1272()
 {
 	//set the Chip Select pin
@@ -143,22 +133,22 @@ SX1272::SX1272()
 	// Initialize class variables
 	_bandwidth = BW_125;
 	_codingRate = CR_5;
-	_spreadingFactor = SF_7;
-	_channel = CH_12_900;
+	_spreadingFactor = SF_12;
+	_channel = CH_03_433;
 	_header = HEADER_ON;
 	_CRC = CRC_OFF;
-	_modem = FSK;
-	_power = 15;
+	_modem = LORA;
+	_power = 17;
 	_packetNumber = 0;
 	_reception = CORRECT_PACKET;
 	_retries = 0;
-	// added by C. Pham
-	_defaultSyncWord = 0x12;
+
+	_defaultSyncWord = 0x34;
 	_rawFormat = false;
 	_extendedIFS = false;
 	_RSSIonSend = true;
-	// disabled by default
-	_enableCarrierSense = false;
+	_enableCarrierSense = false;		// disabled by default
+
 	// DIFS by default
 	_send_cad_number = 9;
 #ifdef PABOOST
@@ -180,10 +170,10 @@ SX1272::SX1272()
 	// we use the same memory area to reduce memory footprint
 	packet_sent.data = packet_data;
 	packet_received.data = packet_data;
+
 	// ACK packet has a very small separate memory area
 	ACK.data = ack_data;
-	// end
-	// modified by C. Pham
+
 	_maxRetries = 0;
 	packet_sent.retry = _retries;
 };
@@ -214,6 +204,7 @@ void SX1272::RxChainCalibration()
 		       RF_IMAGECAL_IMAGECAL_RUNNING) {
 		}
 
+#if 0
 		// Sets a Frequency in HF band
 		setChannel(CH_17_868);
 
@@ -226,6 +217,7 @@ void SX1272::RxChainCalibration()
 			RF_IMAGECAL_IMAGECAL_RUNNING) ==
 		       RF_IMAGECAL_IMAGECAL_RUNNING) {
 		}
+#endif
 	}
 }
 
@@ -256,13 +248,13 @@ uint8_t SX1272::ON()
 	SPI.begin();
 	//Set Most significant bit first
 	SPI.setBitOrder(MSBFIRST);
-#ifdef _VARIANT_ARDUINO_DUE_X_
+
 	// for the DUE, set to 4MHz
 	SPI.setClockDivider(42);
-#else
+
 	// for the MEGA, set to 2MHz
-	SPI.setClockDivider(SPI_CLOCK_DIV8);
-#endif
+	//SPI.setClockDivider(SPI_CLOCK_DIV8);
+
 	//Set data mode
 	SPI.setDataMode(SPI_MODE0);
 #endif
@@ -2474,14 +2466,12 @@ boolean SX1272::isChannel(uint32_t ch)
 
 	// Checking available values for _channel
 	switch (ch) {
-		//added by C. Pham
 	case CH_04_868:
 	case CH_05_868:
 	case CH_06_868:
 	case CH_07_868:
 	case CH_08_868:
 	case CH_09_868:
-		//end
 	case CH_10_868:
 	case CH_11_868:
 	case CH_12_868:
@@ -2490,9 +2480,7 @@ boolean SX1272::isChannel(uint32_t ch)
 	case CH_15_868:
 	case CH_16_868:
 	case CH_17_868:
-		//added by C. Pham
 	case CH_18_868:
-		//end
 	case CH_00_900:
 	case CH_01_900:
 	case CH_02_900:
@@ -2505,13 +2493,11 @@ boolean SX1272::isChannel(uint32_t ch)
 	case CH_09_900:
 	case CH_10_900:
 	case CH_11_900:
-		//added by C. Pham
 	case CH_12_900:
 	case CH_00_433:
 	case CH_01_433:
 	case CH_02_433:
 	case CH_03_433:
-		//end
 		return true;
 		break;
 
