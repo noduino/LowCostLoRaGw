@@ -1,4 +1,4 @@
-/* 
+/*
  *  Library for LoRa 868 / 915MHz SX1272 LoRa module
  *
  *  Copyright (C) Libelium Comunicaciones Distribuidas S.L.
@@ -74,7 +74,7 @@
  *      - when in "production" mode, uncomment #define LIMIT_TOA
  *  Nov, 16th, 2016
  *		- provide better power management mechanisms
- *		- manage PA_BOOST and dBm setting 
+ *		- manage PA_BOOST and dBm setting
  *  Jan, 23rd, 2016
  *      - the packet format at transmission does not use the original Libelium format anymore
  *      * the retry field is removed therefore all operations using retry will probably not work well, not tested though
@@ -176,6 +176,17 @@ SX1272::SX1272()
 
 	_maxRetries = 0;
 	packet_sent.retry = _retries;
+
+	pinMode(SX1272_RST, OUTPUT);
+	digitalWrite(SX1272_RST, HIGH);
+
+	pinMode(_SX1272_SS, OUTPUT);
+	digitalWrite(_SX1272_SS, HIGH);
+
+#ifdef SX1272_led_send_receive
+	pinMode(SX1272_led_send, OUTPUT);
+	pinMode(SX1272_led_receive, OUTPUT);
+#endif
 };
 
 // added by C. Pham
@@ -202,6 +213,7 @@ void SX1272::RxChainCalibration()
 		while ((readRegister(REG_IMAGE_CAL) &
 			RF_IMAGECAL_IMAGECAL_RUNNING) ==
 		       RF_IMAGECAL_IMAGECAL_RUNNING) {
+			   // wait calibration ok
 		}
 
 #if 0
@@ -221,6 +233,14 @@ void SX1272::RxChainCalibration()
 	}
 }
 
+void SX1272::reset()
+{
+	digitalWrite(SX1272_RST, LOW);
+	delay(200);
+	digitalWrite(SX1272_RST, HIGH);
+	delay(500);
+}
+
 /*
  Function: Sets the module ON.
  Returns: uint8_t setLORA state
@@ -233,11 +253,6 @@ uint8_t SX1272::ON()
 	Serial.println();
 	Serial.println(F("Starting 'ON'"));
 #endif
-
-	// Powering the module
-	pinMode(_SX1272_SS, OUTPUT);
-	digitalWrite(_SX1272_SS, HIGH);
-	delay(100);
 
 	//#define USE_SPI_SETTINGS
 
@@ -259,44 +274,22 @@ uint8_t SX1272::ON()
 	SPI.setDataMode(SPI_MODE0);
 #endif
 
-	delay(100);
+	reset();
 
-#ifdef SX1272_WRST
-	// added by C. Pham
-	pinMode(SX1272_RST, OUTPUT);
-	digitalWrite(SX1272_RST, HIGH);
-	delay(100);
-	digitalWrite(SX1272_RST, LOW);
-	delay(100);
-#endif
-
-	// from single_chan_pkt_fwd by Thomas Telkamp
 	uint8_t version = readRegister(REG_VERSION);
 
 	if (version == 0x22) {
 		// sx1272
 		Serial.println(F("SX1272 detected, starting"));
 		_board = SX1272Chip;
+	} else if (version == 0x12) {
+		// sx1276/78
+		Serial.println(F("SX1276/78 detected, starting"));
+		_board = SX1276Chip;
 	} else {
-		// sx1276?
-#ifdef SX1272_WRST
-		digitalWrite(SX1272_RST, LOW);
-		delay(100);
-		digitalWrite(SX1272_RST, HIGH);
-		delay(100);
-#endif
-		version = readRegister(REG_VERSION);
-		if (version == 0x12) {
-			// sx1276
-			Serial.println(F("SX1276 detected, starting"));
-			_board = SX1276Chip;
-		} else {
-			Serial.println(F("Unrecognized transceiver"));
-		}
+		Serial.println(F("Unrecognized transceiver"));
 	}
-	// end from single_chan_pkt_fwd by Thomas Telkamp
 
-	// added by C. Pham
 	RxChainCalibration();
 
 	setMaxCurrent(0x1B);
@@ -305,14 +298,11 @@ uint8_t SX1272::ON()
 	Serial.println();
 #endif
 
-	// set LoRa mode
-	state = setLORA();
+	state = setLORA();	// LoRa mode
 
-	// Added by C. Pham     
-	// set CRC ON
 	setCRC_ON();
 
-	// Added by C. Pham for ToA computation
+	// for ToA computation
 	getPreambleLength();
 #ifdef W_NET_KEY
 	//#if (SX1272_debug_mode > 1)
@@ -320,132 +310,6 @@ uint8_t SX1272::ON()
 	//#endif
 #endif
 
-#ifdef W_INITIALIZATION
-	// CAUTION
-	// doing initialization as proposed by Libelium seems not to work for the SX1276
-	// so we decided to leave the default value of the SX127x, then configure the radio when
-	// setting to LoRa mode
-
-	//Set initialization values
-	writeRegister(0x0, 0x0);
-	// comment by C. Pham
-	// still valid for SX1276
-	writeRegister(0x1, 0x81);
-	// end
-	writeRegister(0x2, 0x1A);
-	writeRegister(0x3, 0xB);
-	writeRegister(0x4, 0x0);
-	writeRegister(0x5, 0x52);
-	writeRegister(0x6, 0xD8);
-	writeRegister(0x7, 0x99);
-	writeRegister(0x8, 0x99);
-	// modified by C. Pham
-	// added by C. Pham
-	if (_board == SX1272Chip)
-		// RFIO_pin RFU OutputPower
-		// 0 000 0000
-		writeRegister(0x9, 0x0);
-	else
-		// RFO_pin MaxP OutputPower
-		// 0 100 1111
-		// set MaxPower to 0x4 and OutputPower to 0
-		writeRegister(0x9, 0x40);
-
-	writeRegister(0xA, 0x9);
-	writeRegister(0xB, 0x3B);
-
-	// comment by C. Pham
-	// still valid for SX1276
-	writeRegister(0xC, 0x23);
-
-	// REG_RX_CONFIG
-	writeRegister(0xD, 0x1);
-
-	writeRegister(0xE, 0x80);
-	writeRegister(0xF, 0x0);
-	writeRegister(0x10, 0x0);
-	writeRegister(0x11, 0x0);
-	writeRegister(0x12, 0x0);
-	writeRegister(0x13, 0x0);
-	writeRegister(0x14, 0x0);
-	writeRegister(0x15, 0x0);
-	writeRegister(0x16, 0x0);
-	writeRegister(0x17, 0x0);
-	writeRegister(0x18, 0x10);
-	writeRegister(0x19, 0x0);
-	writeRegister(0x1A, 0x0);
-	writeRegister(0x1B, 0x0);
-	writeRegister(0x1C, 0x0);
-
-	// added by C. Pham
-	if (_board == SX1272Chip) {
-		// comment by C. Pham
-		// 0x4A = 01 001 0 1 0
-		// BW=250 CR=4/5 ImplicitH_off RxPayloadCrcOn_on LowDataRateOptimize_off
-		writeRegister(0x1D, 0x4A);
-		// 1001 0 1 11
-		// SF=9 TxContinuous_off AgcAutoOn SymbTimeOut
-		writeRegister(0x1E, 0x97);
-	} else {
-		// 1000 001 0
-		// BW=250 CR=4/5 ImplicitH_off
-		writeRegister(0x1D, 0x82);
-		// 1001 0 1 11
-		// SF=9 TxContinuous_off RxPayloadCrcOn_on SymbTimeOut
-		writeRegister(0x1E, 0x97);
-	}
-	// end
-
-	writeRegister(0x1F, 0xFF);
-	writeRegister(0x20, 0x0);
-	writeRegister(0x21, 0x8);
-	writeRegister(0x22, 0xFF);
-	writeRegister(0x23, 0xFF);
-	writeRegister(0x24, 0x0);
-	writeRegister(0x25, 0x0);
-
-	// added by C. Pham
-	if (_board == SX1272Chip)
-		writeRegister(0x26, 0x0);
-	else
-		// 0000 0 1 00
-		// reserved LowDataRateOptimize_off AgcAutoOn reserved
-		writeRegister(0x26, 0x04);
-
-	// REG_SYNC_CONFIG
-	writeRegister(0x27, 0x0);
-
-	writeRegister(0x28, 0x0);
-	writeRegister(0x29, 0x0);
-	writeRegister(0x2A, 0x0);
-	writeRegister(0x2B, 0x0);
-	writeRegister(0x2C, 0x0);
-	writeRegister(0x2D, 0x50);
-	writeRegister(0x2E, 0x14);
-	writeRegister(0x2F, 0x40);
-	writeRegister(0x30, 0x0);
-	writeRegister(0x31, 0x3);
-	writeRegister(0x32, 0x5);
-	writeRegister(0x33, 0x27);
-	writeRegister(0x34, 0x1C);
-	writeRegister(0x35, 0xA);
-	writeRegister(0x36, 0x0);
-	writeRegister(0x37, 0xA);
-	writeRegister(0x38, 0x42);
-	writeRegister(0x39, 0x12);
-	//writeRegister(0x3A,0x65);
-	//writeRegister(0x3B,0x1D);
-	//writeRegister(0x3C,0x1);
-	//writeRegister(0x3D,0xA1);
-	//writeRegister(0x3E,0x0);
-	//writeRegister(0x3F,0x0);
-	//writeRegister(0x40,0x0);
-	//writeRegister(0x41,0x0);
-	// commented by C. Pham
-	// since now we handle also the SX1276
-	//writeRegister(0x42,0x22);
-#endif
-	// added by C. Pham
 	// default sync word for non-LoRaWAN
 	setSyncWord(_defaultSyncWord);
 	getSyncWord();
@@ -463,15 +327,7 @@ uint8_t SX1272::ON()
 	Serial.println();
 #endif
 
-#ifdef SX1272_led_send_receive
-	// added by C. Pham
-	pinMode(SX1272_led_send, OUTPUT);
-	pinMode(SX1272_led_receive, OUTPUT);
-#endif
-	//end
-
-	//init random generator
-	randomSeed(millis());
+	randomSeed(millis());	//init random generator
 
 	return state;
 }
@@ -488,9 +344,7 @@ void SX1272::OFF()
 #endif
 
 	SPI.end();
-	// Powering the module
-	pinMode(_SX1272_SS, OUTPUT);
-	digitalWrite(_SX1272_SS, LOW);
+
 #if (SX1272_debug_mode > 1)
 	Serial.println(F("## Setting OFF ##"));
 	Serial.println();
@@ -3777,7 +3631,7 @@ uint8_t SX1272::receivePacketTimeout()
  Returns: Integer that determines if there has been any error
    state = 5  --> The packet header (packet type) has not been recognized
    state = 4  --> The packet has been incorrectly received (CRC for instance)
-   state = 3  --> No packet has been received during the receive windows 
+   state = 3  --> No packet has been received during the receive windows
    state = 2  --> The command has not been executed
    state = 1  --> There has been an error while executing the command
    state = 0  --> The command has been executed with no errors

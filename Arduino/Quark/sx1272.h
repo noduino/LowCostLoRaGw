@@ -1192,6 +1192,7 @@ class SX1272 {
 	long removeToA(uint16_t toa);
 	int8_t setFreqHopOn();
 	void setCSPin(uint8_t cs);
+	void reset();
 
 	// SX1272 or SX1276?
 	uint8_t _board;
