@@ -216,7 +216,7 @@ void SX1272::RxChainCalibration()
 			   // wait calibration ok
 		}
 
-#if 0
+#ifndef SX1278Chip
 		// Sets a Frequency in HF band
 		setChannel(CH_17_868);
 

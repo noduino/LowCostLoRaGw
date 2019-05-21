@@ -63,6 +63,7 @@
 
 #define SX1272Chip  0
 #define SX1276Chip  1
+#define SX1278Chip  1
 // end
 
 #define SX1272_debug_mode 1
