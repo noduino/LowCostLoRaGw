@@ -33,26 +33,26 @@
 ///////////////////////////////////////////////////////////////////
 
 // IMPORTANT SETTINGS
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 // please uncomment only 1 choice
 //#define ETSI_EUROPE_REGULATION
 //#define FCC_US_REGULATION
 //#define SENEGAL_REGULATION
 #define LONG_RANG_TESTING
-/////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 // please uncomment only 1 choice
 //#define BAND868
 //#define BAND900
 #define BAND433
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-// uncomment if your radio is an HopeRF RFM92W, HopeRF RFM95W, Modtronix inAir9B, NiceRF1276
-// or you known from the circuit diagram that output use the PABOOST line instead of the RFO line
+///////////////////////////////////////////////////////////////////
+// uncomment if the rf output of your radio module use the PABOOST
+// line instead of the RFO line
 #define PABOOST
-/////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE NODE ADDRESS 
@@ -66,16 +66,13 @@
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE TIME IN MINUTES BETWEEN 2 READING & TRANSMISSION
-unsigned int idlePeriodInMin = 10;
+unsigned int idlePeriod = 10;	// 10 seconds
 ///////////////////////////////////////////////////////////////////
 
 #ifdef WITH_APPKEY
-///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE APPKEY, BUT IF GW CHECKS FOR APPKEY, MUST BE
 // IN THE APPKEY LIST MAINTAINED BY GW.
 uint8_t my_appKey[4] = { 5, 6, 7, 8 };
-
-///////////////////////////////////////////////////////////////////
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -133,7 +130,7 @@ const uint32_t DEFAULT_CHANNEL = CH_03_433;	// 434.3MHz
 // you need the LowPower library from RocketScream
 // https://github.com/rocketscream/Low-Power
 #include "LowPower.h"
-unsigned int nCycle = idlePeriodInMin * 60 / LOW_POWER_PERIOD;
+unsigned int nCycle = idlePeriod / LOW_POWER_PERIOD;
 #endif
 
 unsigned long nextTransmissionTime = 0L;
@@ -203,22 +200,14 @@ void setup()
 	// Print a start message
 	PRINT_CSTSTR("%s", "Noduino Quark LoRa Node\n");
 
-#ifdef ARDUINO_AVR_PRO
-	PRINT_CSTSTR("%s", "Arduino Pro Mini detected\n");
-#endif
-#ifdef ARDUINO_AVR_NANO
-	PRINT_CSTSTR("%s", "Arduino Nano detected\n");
-#endif
-
 // See http://www.nongnu.org/avr-libc/user-manual/using_tools.html
 // for the list of define from the AVR compiler
 #ifdef __AVR_ATmega328P__
 	PRINT_CSTSTR("%s", "ATmega328P detected\n");
 #endif
 
-	// Power ON the module
-	power_on_dev();
-	sx1272.ON();
+	power_on_dev();		// turn on device power
+	sx1272.ON();		// power on the module
 
 #ifdef WITH_EEPROM
 	// get config from EEPROM
@@ -241,19 +230,12 @@ void setup()
 	}
 #endif
 
-	// Set transmission mode and print the result
+	// We use the LoRaWAN mode:
+	// BW=125KHz, SF=12, CR=4/5, sync=0x34
 	e = sx1272.setMode(loraMode);
 	PRINT_CSTSTR("%s", "Setting Mode: state ");
 	PRINT_VALUE("%d", e);
 	PRINTLN;
-
-	// enable carrier sense
-	sx1272._enableCarrierSense = true;
-#ifdef LOW_POWER
-	// TODO: with low power, when setting the radio module in sleep mode
-	// there seem to be some issue with RSSI reading
-	sx1272._RSSIonSend = false;
-#endif
 
 	// Select frequency channel
 	e = sx1272.setChannel(DEFAULT_CHANNEL);
@@ -264,15 +246,7 @@ void setup()
 	// Select amplifier line; PABOOST or RFO
 #ifdef PABOOST
 	sx1272._needPABOOST = true;
-	// previous way for setting output power
-	// powerLevel='x';
-#else
-	// previous way for setting output power
-	// powerLevel='M';  
 #endif
-
-	// previous way for setting output power
-	// e = sx1272.setPower(powerLevel); 
 
 	e = sx1272.setPowerDBM((uint8_t) MAX_DBM);
 	PRINT_CSTSTR("%s", "Setting Power: state ");
@@ -284,6 +258,14 @@ void setup()
 	PRINT_CSTSTR("%s", "Setting node addr: state ");
 	PRINT_VALUE("%d", e);
 	PRINTLN;
+
+	// enable carrier sense
+	sx1272._enableCarrierSense = true;
+#ifdef LOW_POWER
+	// TODO: with low power, when setting the radio module in sleep mode
+	// there seem to be some issue with RSSI reading
+	sx1272._RSSIonSend = false;
+#endif
 
 	// Set CRC off
 	//e = sx1272.setCRC_OFF();
@@ -442,16 +424,13 @@ void loop(void)
 		    delay(50);
 #endif
 
-		nCycle = idlePeriodInMin * 60 / LOW_POWER_PERIOD;	//+ random(2,4);
+		nCycle = idlePeriod / LOW_POWER_PERIOD;	//+ random(2,4);
 
 		for (int i = 0; i < nCycle; i++) {
 
 #if defined ARDUINO_AVR_PRO || defined ARDUINO_AVR_NANO || defined ARDUINO_AVR_UNO || defined ARDUINO_AVR_MINI || defined __AVR_ATmega32U4__
 			// ATmega328P, ATmega168, ATmega32U4
 			LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-
-			//LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, 
-			//              SPI_OFF, USART0_OFF, TWI_OFF);
 #else
 			// use the delay function
 			delay(LOW_POWER_PERIOD * 1000);
@@ -468,8 +447,8 @@ void loop(void)
 		PRINT_CSTSTR("%s", "Will send next value at\n");
 		// use a random part also to avoid collision
 		nextTransmissionTime =
-		    millis() + (unsigned long)idlePeriodInMin *60 * 1000 +
-		    (unsigned long)random(15, 60) * 1000;
+		    millis() + (unsigned long)idlePeriod * 1000 +
+		    (unsigned long)random(15, 60) * 10;
 		PRINT_VALUE("%ld", nextTransmissionTime);
 		PRINTLN;
 	}
