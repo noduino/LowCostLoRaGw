@@ -298,7 +298,7 @@ uint8_t SX1272::ON()
 	Serial.println();
 #endif
 
-	state = setLORA();	// LoRa mode
+	state = setLORA();	// enter in lora_stand_by mode
 
 	setCRC_ON();
 
@@ -309,11 +309,6 @@ uint8_t SX1272::ON()
 	Serial.println(F("## SX1272 layer has net key##"));
 	//#endif
 #endif
-
-	// default sync word for non-LoRaWAN
-	setSyncWord(_defaultSyncWord);
-	getSyncWord();
-	_defaultSyncWord = _syncWord;
 
 #ifdef LIMIT_TOA
 	uint16_t remainingToA = limitToA();
@@ -469,15 +464,6 @@ uint8_t SX1272::setLORA()
 			else
 				retry++;
 		}
-		/*
-		   if (st0!=LORA_STANDBY_MODE) {
-		   pinMode(SX1272_RST,OUTPUT);
-		   digitalWrite(SX1272_RST,HIGH);
-		   delay(100);
-		   digitalWrite(SX1272_RST,LOW);
-		   }
-		 */
-
 	} while (st0 != LORA_STANDBY_MODE);	// LoRa standby mode
 
 	if (st0 == LORA_STANDBY_MODE) {	// LoRa mode
@@ -652,6 +638,7 @@ int8_t SX1272::setMode(uint8_t mode)
 	if (_modem == FSK) {
 		setLORA();
 	}
+
 	writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
 
 	switch (mode) {
