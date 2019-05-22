@@ -292,7 +292,7 @@ uint8_t SX1272::ON()
 
 	RxChainCalibration();
 
-	setMaxCurrent(0x1B);
+	//setMaxCurrent(0x1B);
 #if (SX1272_debug_mode > 1)
 	Serial.println(F("## Setting ON with maximum current supply ##"));
 	Serial.println();
@@ -304,6 +304,8 @@ uint8_t SX1272::ON()
 
 	// for ToA computation
 	getPreambleLength();
+	Serial.print("Preamble len is: ");
+	Serial.println(_preamblelength + 4);
 #ifdef W_NET_KEY
 	//#if (SX1272_debug_mode > 1)
 	Serial.println(F("## SX1272 layer has net key##"));
@@ -407,22 +409,31 @@ void SX1272::writeRegister(byte address, byte data)
 */
 void SX1272::clearFlags()
 {
-	byte st0;
+	byte st0, stnew;
 
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 
 	if (_modem == LORA) {	// LoRa mode
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Stdby mode to write in registers
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Stdby mode to write in registers
 		writeRegister(REG_IRQ_FLAGS, 0xFF);	// LoRa mode flags register
-		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 #if (SX1272_debug_mode > 1)
 		Serial.println(F("## LoRa flags cleared ##"));
 #endif
 	} else {		// FSK mode
-		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);	// Stdby mode to write in registers
+		stnew = FSK_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);	// Stdby mode to write in registers
+
 		writeRegister(REG_IRQ_FLAGS1, 0xFF);	// FSK mode flags1 register
 		writeRegister(REG_IRQ_FLAGS2, 0xFF);	// FSK mode flags2 register
-		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 #if (SX1272_debug_mode > 1)
 		Serial.println(F("## FSK flags cleared ##"));
 #endif
@@ -551,7 +562,6 @@ uint8_t SX1272::setFSK()
 */
 uint8_t SX1272::getMode()
 {
-	byte st0;
 	int8_t state = 2;
 	byte value = 0x00;
 
@@ -560,7 +570,6 @@ uint8_t SX1272::getMode()
 	Serial.println(F("Starting 'getMode'"));
 #endif
 
-	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 	if (_modem == FSK) {
 		setLORA();	// Setting LoRa mode
 	}
@@ -606,7 +615,6 @@ uint8_t SX1272::getMode()
 	Serial.println();
 #endif
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -624,7 +632,7 @@ uint8_t SX1272::getMode()
 int8_t SX1272::setMode(uint8_t mode)
 {
 	int8_t state = 2;
-	byte st0;
+	byte st0, stnew;
 	byte config1 = 0x00;
 	byte config2 = 0x00;
 
@@ -639,7 +647,9 @@ int8_t SX1272::setMode(uint8_t mode)
 		setLORA();
 	}
 
-	writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
+	stnew = LORA_STANDBY_MODE;
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
 
 	switch (mode) {
 		// mode 1 (better reach, medium time on air)
@@ -1025,7 +1035,8 @@ int8_t SX1272::setMode(uint8_t mode)
 	}
 #endif
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -1549,7 +1560,7 @@ int8_t SX1272::getSF()
 */
 uint8_t SX1272::setSF(uint8_t spr)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte config1 = 0;
 	byte config2 = 0;
@@ -1570,7 +1581,10 @@ uint8_t SX1272::setSF(uint8_t spr)
 #endif
 		state = setLORA();	// Setting LoRa mode
 	} else {		// LoRa mode
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
+
 		config2 = (readRegister(REG_MODEM_CONFIG2));	// Save config2 to modify SF value (bits 7-4)
 		switch (spr) {
 		case SF_6:
@@ -1754,7 +1768,8 @@ uint8_t SX1272::setSF(uint8_t spr)
 		}
 	}
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 
 	if (isSF(spr)) {	// Checking available value for _spreadingFactor
@@ -1900,7 +1915,7 @@ int8_t SX1272::getBW()
 */
 int8_t SX1272::setBW(uint16_t band)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte config1;
 
@@ -1930,7 +1945,11 @@ int8_t SX1272::setBW(uint16_t band)
 #endif
 		state = setLORA();
 	}
-	writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
+
+	stnew = LORA_STANDBY_MODE;
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// LoRa standby mode
+
 	config1 = (readRegister(REG_MODEM_CONFIG1));	// Save config1 to modify only the BW
 
 	// added by C. Pham for SX1276
@@ -2069,7 +2088,10 @@ int8_t SX1272::setBW(uint16_t band)
 		Serial.println();
 #endif
 	}
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+
 	delay(100);
 	return state;
 }
@@ -2170,7 +2192,7 @@ int8_t SX1272::getCR()
 */
 int8_t SX1272::setCR(uint8_t cod)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte config1;
 
@@ -2190,7 +2212,9 @@ int8_t SX1272::setCR(uint8_t cod)
 #endif
 		state = setLORA();
 	}
-	writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set Standby mode to write in registers
+	stnew = LORA_STANDBY_MODE;
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set Standby mode to write in registers
 
 	config1 = readRegister(REG_MODEM_CONFIG1);	// Save config1 to modify only the CR
 
@@ -2286,7 +2310,8 @@ int8_t SX1272::setCR(uint8_t cod)
 		Serial.println();
 #endif
 	}
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -2404,7 +2429,7 @@ uint8_t SX1272::getChannel()
 */
 int8_t SX1272::setChannel(uint32_t ch)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	unsigned int freq3;
 	unsigned int freq2;
@@ -2420,12 +2445,14 @@ int8_t SX1272::setChannel(uint32_t ch)
 	_starttime = millis();
 
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
-	if (_modem == LORA) {
-		// LoRa Stdby mode in order to write in registers
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
-	} else {
-		// FSK Stdby mode in order to write in registers
-		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
+	if (_modem == LORA) {	// LoRa Stdby mode to write in registers
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+	} else {		// FSK Stdby mode to write in registers
+		stnew = FSK_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
 	}
 
 	freq3 = ((ch >> 16) & 0x0FF);	// frequency channel MSB
@@ -2465,22 +2492,8 @@ int8_t SX1272::setChannel(uint32_t ch)
 		state = 1;
 	}
 
-	// commented by C. Pham to avoid adding new channel each time
-	// besides, the test above is sufficient
-	/*
-	   if(!isChannel(ch) )
-	   {
-	   state = -1;
-	   #if (SX1272_debug_mode > 1)
-	   Serial.print(F("** Frequency channel "));
-	   Serial.print(ch, HEX);
-	   Serial.println(F("is not a correct value **"));
-	   Serial.println();
-	   #endif
-	   }
-	 */
-
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -2535,7 +2548,7 @@ uint8_t SX1272::getPower()
 */
 int8_t SX1272::setPower(char p)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte value = 0x00;
 
@@ -2548,9 +2561,13 @@ int8_t SX1272::setPower(char p)
 
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 	if (_modem == LORA) {	// LoRa Stdby mode to write in registers
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
 	} else {		// FSK Stdby mode to write in registers
-		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
+		stnew = FSK_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
 	}
 
 	switch (p) {
@@ -2586,9 +2603,6 @@ int8_t SX1272::setPower(char p)
 		break;
 	}
 
-	// 100mA
-	setMaxCurrent(0x0B);
-
 	if (p == 'x') {
 		// we set only the PA_BOOST pin
 		// limit to 14dBm
@@ -2597,20 +2611,23 @@ int8_t SX1272::setPower(char p)
 		// set RegOcp for OcpOn and OcpTrim
 		// 130mA
 		setMaxCurrent(0x10);
-	}
 
-	if (p == 'X') {
+	} else if (p == 'X') {
 		// normally value = 0x0F;
 		// we set the PA_BOOST pin
 		value = value | B10000000;
 		// and then set the high output power config with register REG_PA_DAC
-		writeRegister(RegPaDacReg, 0x87);
+		writeRegister(RegPaDacReg, 0x87);	// +20dBm on PA_BOOST
 		// set RegOcp for OcpOn and OcpTrim
-		// 150mA
-		setMaxCurrent(0x12);
+
+		setMaxCurrent(0x12);	// 150mA
+
 	} else {
 		// disable high power output in all other cases
 		writeRegister(RegPaDacReg, 0x84);
+
+		setMaxCurrent(0x0B);	// 100mA
+
 	}
 
 	// added by C. Pham
@@ -2650,7 +2667,8 @@ int8_t SX1272::setPower(char p)
 		state = 1;
 	}
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -2667,7 +2685,7 @@ int8_t SX1272::setPower(char p)
 */
 int8_t SX1272::setPowerNum(uint8_t pow)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte value = 0x00;
 
@@ -2678,9 +2696,13 @@ int8_t SX1272::setPowerNum(uint8_t pow)
 
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 	if (_modem == LORA) {	// LoRa Stdby mode to write in registers
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
 	} else {		// FSK Stdby mode to write in registers
-		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
+		stnew = FSK_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
 	}
 
 	if ((pow >= 0) && (pow < 15)) {
@@ -2715,7 +2737,8 @@ int8_t SX1272::setPowerNum(uint8_t pow)
 		state = 1;
 	}
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -2780,7 +2803,7 @@ uint8_t SX1272::getPreambleLength()
 */
 uint8_t SX1272::setPreambleLength(uint16_t l)
 {
-	byte st0;
+	byte st0, stnew;
 	uint8_t p_length;
 	int8_t state = 2;
 
@@ -2792,7 +2815,10 @@ uint8_t SX1272::setPreambleLength(uint16_t l)
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 	state = 1;
 	if (_modem == LORA) {	// LoRa mode
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set Standby mode to write in registers
+
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set Standby mode to write in registers
 		p_length = ((l >> 8) & 0x0FF);
 		// Storing MSB preamble length in LoRa mode
 		writeRegister(REG_PREAMBLE_MSB_LORA, p_length);
@@ -2800,7 +2826,9 @@ uint8_t SX1272::setPreambleLength(uint16_t l)
 		// Storing LSB preamble length in LoRa mode
 		writeRegister(REG_PREAMBLE_LSB_LORA, p_length);
 	} else {		// FSK mode
-		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);	// Set Standby mode to write in registers
+		stnew = FSK_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);	// Set Standby mode to write in registers
 		p_length = ((l >> 8) & 0x0FF);
 		// Storing MSB preamble length in FSK mode
 		writeRegister(REG_PREAMBLE_MSB_FSK, p_length);
@@ -2817,7 +2845,8 @@ uint8_t SX1272::setPreambleLength(uint16_t l)
 	Serial.println();
 #endif
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -2881,12 +2910,17 @@ int8_t SX1272::setPacketLength(uint8_t l)
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 	packet_sent.length = l;
 
-	if (_modem == LORA) {	// LORA mode
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set LoRa Standby mode to write in registers
-		writeRegister(REG_PAYLOAD_LENGTH_LORA, packet_sent.length);
-		// Storing payload length in LoRa mode
+	if (_modem == LORA) {
+
+		if (st0 != LORA_STANDBY_MODE) {
+			// Set LoRa Standby mode to write in registers
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+		}
+
+		writeRegister(REG_PAYLOAD_LENGTH_LORA, packet_sent.length);	// Storing payload length in LoRa mode
 		value = readRegister(REG_PAYLOAD_LENGTH_LORA);
-	} else {		// FSK mode
+	} else {
+		// FSK mode
 		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);	//  Set FSK Standby mode to write in registers
 		writeRegister(REG_PAYLOAD_LENGTH_FSK, packet_sent.length);
 		// Storing payload length in FSK mode
@@ -2905,7 +2939,10 @@ int8_t SX1272::setPacketLength(uint8_t l)
 		state = 1;
 	}
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != LORA_STANDBY_MODE) {
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	}
+
 	// comment by C. Pham
 	// this delay is included in the send delay overhead
 	// TODO: do we really need this delay?
@@ -2965,7 +3002,7 @@ uint8_t SX1272::getNodeAddress()
 */
 int8_t SX1272::setNodeAddress(uint8_t addr)
 {
-	byte st0;
+	byte st0, stnew;
 	byte value;
 	uint8_t state = 2;
 
@@ -2985,10 +3022,18 @@ int8_t SX1272::setNodeAddress(uint8_t addr)
 		_nodeAddress = addr;
 		st0 = readRegister(REG_OP_MODE);	// Save the previous status
 
-		if (_modem == LORA) {	// Allowing access to FSK registers while in LoRa standby mode
-			writeRegister(REG_OP_MODE, LORA_STANDBY_FSK_REGS_MODE);
-		} else {	//Set FSK Standby mode to write in registers
-			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
+		if (_modem == LORA) {
+			stnew = LORA_STANDBY_FSK_REGS_MODE;
+
+			// Allowing access to FSK registers while in LoRa standby mode
+			if (st0 != stnew)
+				writeRegister(REG_OP_MODE, LORA_STANDBY_FSK_REGS_MODE);
+		} else {
+			stnew = FSK_STANDBY_MODE;
+
+			//Set FSK Standby mode to write in registers
+			if (st0 != stnew)
+				writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
 		}
 
 		// Storing node and broadcast address
@@ -2996,7 +3041,9 @@ int8_t SX1272::setNodeAddress(uint8_t addr)
 		writeRegister(REG_BROADCAST_ADRS, BROADCAST_0);
 
 		value = readRegister(REG_NODE_ADRS);
-		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 
 		if (value == _nodeAddress) {
 			state = 0;
@@ -3258,7 +3305,7 @@ uint8_t SX1272::getMaxCurrent()
 int8_t SX1272::setMaxCurrent(uint8_t rate)
 {
 	int8_t state = 2;
-	byte st0;
+	byte st0, stnew;
 
 #if (SX1272_debug_mode > 1)
 	Serial.println();
@@ -3281,13 +3328,20 @@ int8_t SX1272::setMaxCurrent(uint8_t rate)
 
 		state = 1;
 		st0 = readRegister(REG_OP_MODE);	// Save the previous status
-		if (_modem == LORA) {	// LoRa mode
-			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set LoRa Standby mode to write in registers
-		} else {	// FSK mode
-			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);	// Set FSK Standby mode to write in registers
+		if (_modem == LORA) {	// LoRa Stdby mode to write in registers
+			stnew = LORA_STANDBY_MODE;
+			if (st0 != stnew)
+				writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+		} else {		// FSK Stdby mode to write in registers
+			stnew = FSK_STANDBY_MODE;
+			if (st0 != stnew)
+				writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
 		}
+
 		writeRegister(REG_OCP, rate);	// Modifying maximum current supply
-		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 		state = 0;
 	}
 	return state;
@@ -5232,7 +5286,7 @@ uint8_t SX1272::doCAD(uint8_t counter)
 	bool failedCAD = false;
 	uint8_t retryCAD = 3;
 	uint8_t save_counter;
-	byte st0;
+	byte st0, stnew;
 	int rssi_count = 0;
 	int rssi_mean = 0;
 	double bw = 0.0;
@@ -5257,8 +5311,9 @@ uint8_t SX1272::doCAD(uint8_t counter)
 	startDoCad = millis();
 
 	if (_modem == LORA) {	// LoRa mode
-
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
 
 		do {
 
@@ -5271,6 +5326,7 @@ uint8_t SX1272::doCAD(uint8_t counter)
 			startCAD = millis();
 			exitTime = millis() + (unsigned long)wait;
 
+			stnew = LORA_CAD_MODE;
 			writeRegister(REG_OP_MODE, LORA_CAD_MODE);	// LORA mode - Cad
 
 			startRSSI = micros();
@@ -5360,7 +5416,8 @@ uint8_t SX1272::doCAD(uint8_t counter)
 		_RSSI = rssi_mean;
 	}
 
-	writeRegister(REG_OP_MODE, st0);
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);
 
 	endDoCad = millis();
 
@@ -5951,7 +6008,7 @@ int8_t SX1272::getSyncWord()
 */
 int8_t SX1272::setSyncWord(uint8_t sw)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte config1;
 
@@ -5970,7 +6027,9 @@ int8_t SX1272::setSyncWord(uint8_t sw)
 #endif
 		state = setLORA();
 	}
-	writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set Standby mode to write in registers
+	stnew = LORA_STANDBY_MODE;
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);	// Set Standby mode to write in registers
 
 	writeRegister(REG_SYNC_WORD, sw);
 
@@ -5997,7 +6056,8 @@ int8_t SX1272::setSyncWord(uint8_t sw)
 #endif
 	}
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
@@ -6033,7 +6093,7 @@ int8_t SX1272::setSleepMode()
 
 int8_t SX1272::setPowerDBM(uint8_t dbm)
 {
-	byte st0;
+	byte st0, stnew;
 	int8_t state = 2;
 	byte value = 0x00;
 
@@ -6046,9 +6106,13 @@ int8_t SX1272::setPowerDBM(uint8_t dbm)
 
 	st0 = readRegister(REG_OP_MODE);	// Save the previous status
 	if (_modem == LORA) {	// LoRa Stdby mode to write in registers
-		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
+		stnew = LORA_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
 	} else {		// FSK Stdby mode to write in registers
-		writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
+		stnew = FSK_STANDBY_MODE;
+		if (st0 != stnew)
+			writeRegister(REG_OP_MODE, FSK_STANDBY_MODE);
 	}
 
 	if (dbm == 20) {
@@ -6119,7 +6183,8 @@ int8_t SX1272::setPowerDBM(uint8_t dbm)
 		state = 1;
 	}
 
-	writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
+	if (st0 != stnew)
+		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 	delay(100);
 	return state;
 }
