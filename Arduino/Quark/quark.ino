@@ -21,6 +21,7 @@
 #include <SPI.h>
 #include "sx1272.h"
 #include "pressure.h"
+#include "vbat.h"
 
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
@@ -285,7 +286,7 @@ void loop(void)
 	long endSend;
 	uint8_t app_key_offset = 0;
 	int e;
-	float temp;
+	float temp, vbat;
 
 #ifndef LOW_POWER
 	// 600000+random(15,60)*1000
@@ -299,6 +300,7 @@ void loop(void)
 #endif
 
 		temp = pressure_get_value();
+		vbat = get_vbat();
 
 #ifdef LOW_POWER
 		digitalWrite(PIN_POWER, LOW);
@@ -322,10 +324,15 @@ void loop(void)
 							String(temp).c_str());
 #else
 		char float_str[10];
-		ftoa(float_str, temp, 2);
+		ftoa(float_str, vbat, 2);
+		PRINT_CSTSTR("%s", "Vbat = [");
+		PRINT_STR("%s", (char *)float_str);
+		PRINT_CSTSTR("%s", "]");
+		PRINTLN;
+
 		// this is for testing, uncomment if you just want to test, without a real temp sensor plugged
-		strcpy(float_str, "noduino");
-		r_size = sprintf((char *)message + app_key_offset, "%s", float_str);
+		//strcpy(float_str, "noduino");
+		r_size = sprintf((char *)message + app_key_offset, "\!Vbat/%s", float_str);
 #endif
 
 		PRINT_CSTSTR("%s", "Sending ");

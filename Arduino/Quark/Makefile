@@ -70,6 +70,7 @@ $(ARDUINO_CORES)/main.cpp								\
 $(LIB_DIR)/SPI/src/SPI.cpp								\
 $(LIB_DIR)/LowPower/LowPower.cpp						\
 ./sx1272.cpp											\
+./vbat.cpp												\
 ./pressure.cpp
 #$(ARDUINO_CORES)/HardwareSerial1.cpp 					\
 #$(ARDUINO_CORES)/HardwareSerial2.cpp 					\
