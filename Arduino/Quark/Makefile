@@ -57,6 +57,7 @@ $(ARDUINO_CORES)/wiring.c 								\
 $(ARDUINO_CORES)/hooks.c 								\
 $(ARDUINO_CORES)/wiring_digital.c 						\
 $(ARDUINO_CORES)/WInterrupts.c 							\
+$(LIB_DIR)/Wire/src/utility/twi.c						\
 $(ARDUINO_CORES)/wiring_shift.c
 
 CXX_MODULES = 										\
@@ -68,9 +69,12 @@ $(ARDUINO_CORES)/WMath.cpp 								\
 $(ARDUINO_CORES)/WString.cpp 							\
 $(ARDUINO_CORES)/main.cpp								\
 $(LIB_DIR)/SPI/src/SPI.cpp								\
+$(LIB_DIR)/MCP342x/src/MCP342x.cpp						\
+$(LIB_DIR)/Wire/src/Wire.cpp							\
 $(LIB_DIR)/LowPower/LowPower.cpp						\
 ./sx1272.cpp											\
 ./vbat.cpp												\
+./adc.cpp												\
 ./pressure.cpp
 #$(ARDUINO_CORES)/HardwareSerial1.cpp 					\
 #$(ARDUINO_CORES)/HardwareSerial2.cpp 					\
@@ -122,6 +126,9 @@ CXXINCS = -I $(ARDUINO_CORES)
 CINCS += -I  $(LIB_DIR)/SPI/src						\
 			-I $(LIB_DIR)/EEPROM/src				\
 			-I $(LIB_DIR)/LowPower					\
+			-I $(LIB_DIR)/MCP342x/src				\
+			-I $(LIB_DIR)/Wire/src					\
+			-I $(LIB_DIR)/Wire/src/utility			\
 			-I .									
 #			-I $(LIB_DIR)/EEPROM					\
 			-I $(LIB_DIR)/Ethernet/src				\
@@ -134,6 +141,8 @@ CINCS += -I  $(LIB_DIR)/SPI/src						\
 CXXINCS += -I  $(LIB_DIR)/SPI/src					\
 			-I $(LIB_DIR)/EEPROM/src				\
 			-I $(LIB_DIR)/LowPower					\
+			-I $(LIB_DIR)/MCP342x/src				\
+			-I $(LIB_DIR)/Wire/src					\
 			-I .									
 #			-I $(LIB_DIR)/EEPROM					\
 			-I $(LIB_DIR)/Ethernet/src				\

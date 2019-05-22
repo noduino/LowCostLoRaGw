@@ -16,15 +16,20 @@
  *
 */
 
-#include "pressure.h"
+#ifndef __ADC_H___
+#define __ADC_H__
 
-void pressure_init()
-{
-	adc_init();
-}
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
 
-float get_pressure()
-{
-	float ad = get_adc_uv();
-	return ad;
-}
+#include <Wire.h>
+#include <MCP342x.h>
+
+uint8_t adc_init();
+long get_adc();
+float get_adc_uv();
+
+#endif

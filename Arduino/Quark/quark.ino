@@ -23,6 +23,8 @@
 #include "pressure.h"
 #include "vbat.h"
 
+#define PIN_POWER		7
+
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
 //#define WITH_APPKEY
@@ -186,14 +188,12 @@ void setup()
 
 	pinMode(6, OUTPUT);
 
-	// initialization of the sensor
-	pressure_init();
-
 #ifndef LOW_POWER
+	pinMode(PIN_POWER, OUTPUT);
 	digitalWrite(PIN_POWER, HIGH);
 #endif
 
-	delay(1000);
+	//delay(1000);
 
 	// Open serial communications and wait for port to open:
 	Serial.begin(115200);
@@ -208,6 +208,8 @@ void setup()
 #endif
 
 	power_on_dev();		// turn on device power
+
+	pressure_init();	// initialization of the sensor
 	sx1272.ON();		// power on the module
 
 #ifdef WITH_EEPROM
@@ -277,7 +279,7 @@ void setup()
 	// Print a success message
 	PRINT_CSTSTR("%s", "SX1272 successfully configured\n");
 
-	delay(500);
+	//delay(500);
 }
 
 void loop(void)
@@ -286,7 +288,7 @@ void loop(void)
 	long endSend;
 	uint8_t app_key_offset = 0;
 	int e;
-	float temp, vbat;
+	float pres, vbat;
 
 #ifndef LOW_POWER
 	// 600000+random(15,60)*1000
@@ -299,15 +301,15 @@ void loop(void)
 		delay(200);
 #endif
 
-		temp = pressure_get_value();
+		pres = get_pressure();
 		vbat = get_vbat();
 
 #ifdef LOW_POWER
 		digitalWrite(PIN_POWER, LOW);
 #endif
 
-		PRINT_CSTSTR("%s", "Mean temp is ");
-		PRINT_VALUE("%f", temp);
+		PRINT_CSTSTR("%s", "Pressure is ");
+		PRINT_VALUE("%f", pres);
 		PRINTLN;
 
 #ifdef WITH_APPKEY
@@ -321,18 +323,19 @@ void loop(void)
 		// the recommended format if now \!TC/22.5
 #ifdef STRING_LIB
 		r_size = sprintf((char *)message + app_key_offset, "%s",
-							String(temp).c_str());
+							String(pres).c_str());
 #else
-		char float_str[10];
-		ftoa(float_str, vbat, 2);
+		char vbat_s[10], pres_s[10];
+		ftoa(vbat_s, vbat, 2);
+		ftoa(pres_s, pres, 2);
 		PRINT_CSTSTR("%s", "Vbat = [");
-		PRINT_STR("%s", (char *)float_str);
+		PRINT_STR("%s", (char *)vbat_s);
 		PRINT_CSTSTR("%s", "]");
 		PRINTLN;
 
-		// this is for testing, uncomment if you just want to test, without a real temp sensor plugged
-		//strcpy(float_str, "noduino");
-		r_size = sprintf((char *)message + app_key_offset, "\!Vbat/%s", float_str);
+		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
+		//strcpy(vbat_s, "noduino");
+		r_size = sprintf((char *)message + app_key_offset, "\!Vbat/%s/Press/%s", vbat_s, pres_s);
 #endif
 
 		PRINT_CSTSTR("%s", "Sending ");
