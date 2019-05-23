@@ -262,6 +262,11 @@ const uint32_t CH_10_900 = 0xE72B85;	// channel 10, central freq = 924.68MHz
 const uint32_t CH_11_900 = 0xE7B5C2;	// channel 11, central freq = 926.84MHz
 const uint32_t CH_12_900 = 0xE4C000;	// default channel 915MHz, the module is configured with it
 
+const uint32_t CH_00_470 = 0x758000;	// 470.0MHz
+const uint32_t CH_01_470 = 0x759338;	// 470.3MHz
+const uint32_t CH_02_470 = 0x75A65C;	// 470.6MHz
+const uint32_t CH_03_470 = 0x75B980;	// 470.9MHz
+
 const uint32_t CH_00_433 = 0x6C5333;	// 433.3MHz
 const uint32_t CH_01_433 = 0x6C6666;	// 433.6MHz
 const uint32_t CH_02_433 = 0x6C7999;	// 433.9MHz
