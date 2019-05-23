@@ -461,7 +461,6 @@ uint8_t SX1272::setLORA()
 	uint8_t retry = 0;
 
 	do {
-		delay(200);
 		writeRegister(REG_OP_MODE, FSK_SLEEP_MODE);	// Sleep mode (mandatory to set LoRa mode)
 		writeRegister(REG_OP_MODE, LORA_SLEEP_MODE);	// LoRa sleep mode
 		writeRegister(REG_OP_MODE, LORA_STANDBY_MODE);
@@ -475,6 +474,7 @@ uint8_t SX1272::setLORA()
 			else
 				retry++;
 		}
+		delay(200);
 	} while (st0 != LORA_STANDBY_MODE);	// LoRa standby mode
 
 	if (st0 == LORA_STANDBY_MODE) {	// LoRa mode
@@ -615,7 +615,7 @@ uint8_t SX1272::getMode()
 	Serial.println();
 #endif
 
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -1037,7 +1037,7 @@ int8_t SX1272::setMode(uint8_t mode)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -1693,7 +1693,7 @@ uint8_t SX1272::setSF(uint8_t spr)
 		// here we write the new SF
 		writeRegister(REG_MODEM_CONFIG2, config2);	// Update config2
 
-		delay(100);
+		//delay(100);
 
 		// added by C. Pham
 		byte configAgc;
@@ -1770,7 +1770,7 @@ uint8_t SX1272::setSF(uint8_t spr)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 
 	if (isSF(spr)) {	// Checking available value for _spreadingFactor
 		state = 0;
@@ -2002,7 +2002,7 @@ int8_t SX1272::setBW(uint16_t band)
 
 	writeRegister(REG_MODEM_CONFIG1, config1);	// Update config1
 
-	delay(100);
+	//delay(100);
 
 	config1 = (readRegister(REG_MODEM_CONFIG1));
 
@@ -2092,7 +2092,7 @@ int8_t SX1272::setBW(uint16_t band)
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
 
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -2258,7 +2258,7 @@ int8_t SX1272::setCR(uint8_t cod)
 	}
 	writeRegister(REG_MODEM_CONFIG1, config1);	// Update config1
 
-	delay(100);
+	//delay(100);
 
 	config1 = readRegister(REG_MODEM_CONFIG1);
 
@@ -2312,7 +2312,7 @@ int8_t SX1272::setCR(uint8_t cod)
 	}
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -2466,7 +2466,7 @@ int8_t SX1272::setChannel(uint32_t ch)
 	// added by C. Pham
 	_stoptime = millis();
 
-	delay(100);
+	//delay(100);
 
 	// storing MSB in freq channel value
 	freq3 = (readRegister(REG_FRF_MSB));
@@ -2494,7 +2494,7 @@ int8_t SX1272::setChannel(uint32_t ch)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -2669,7 +2669,7 @@ int8_t SX1272::setPower(char p)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -2739,7 +2739,7 @@ int8_t SX1272::setPowerNum(uint8_t pow)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -2847,7 +2847,7 @@ uint8_t SX1272::setPreambleLength(uint16_t l)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -2946,7 +2946,7 @@ int8_t SX1272::setPacketLength(uint8_t l)
 	// comment by C. Pham
 	// this delay is included in the send delay overhead
 	// TODO: do we really need this delay?
-	delay(250);
+	//delay(250);
 	return state;
 }
 
@@ -3564,7 +3564,7 @@ uint8_t SX1272::setACK()
 
 		// comment by C. Pham
 		// TODO: do we really need this delay?
-		delay(500);
+		//delay(500);
 	}
 	return state;
 }
@@ -6033,7 +6033,7 @@ int8_t SX1272::setSyncWord(uint8_t sw)
 
 	writeRegister(REG_SYNC_WORD, sw);
 
-	delay(100);
+	//delay(100);
 
 	config1 = readRegister(REG_SYNC_WORD);
 
@@ -6058,7 +6058,7 @@ int8_t SX1272::setSyncWord(uint8_t sw)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
@@ -6185,7 +6185,7 @@ int8_t SX1272::setPowerDBM(uint8_t dbm)
 
 	if (st0 != stnew)
 		writeRegister(REG_OP_MODE, st0);	// Getting back to previous status
-	delay(100);
+	//delay(100);
 	return state;
 }
 
