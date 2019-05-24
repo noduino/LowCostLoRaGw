@@ -1047,7 +1047,7 @@ void loop(void)
              radioON=false;
              PRINT_CSTSTR("%s","^$Resetting radio module");
              PRINTLN;
-#if 0
+#if 1
              e = sx1272.ON();
              PRINT_CSTSTR("%s","^$Setting power ON: state ");
              PRINT_VALUE("%d",e);
