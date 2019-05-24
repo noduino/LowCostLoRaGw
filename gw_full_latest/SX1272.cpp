@@ -133,7 +133,7 @@ SX1272::SX1272()
     _reception = CORRECT_PACKET;
     _retries = 0;
     // added by C. Pham
-    _defaultSyncWord=0x12;
+    _defaultSyncWord=0x34;
     _rawFormat=false;
     _extendedIFS=false;
     _RSSIonSend=true;
