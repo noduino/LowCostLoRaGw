@@ -3,10 +3,10 @@
 cd /home/pi/lora_gateway
 
 #run script for the shutdown button
-python /home/pi/lora_gateway/scripts/piShutdown.py &
+#python /home/pi/lora_gateway/scripts/piShutdown.py &
 
 #create the gw id so that a newly installed gateway is always configured with a correct id
-/home/pi/lora_gateway/scripts/create_gwid.sh
+#/home/pi/lora_gateway/scripts/create_gwid.sh
 
 ###
 ### Start Internet access with 3G dongle
@@ -110,52 +110,6 @@ fi
 ############################################
 
 ###
-### Version management and auto update
-############################################
-
-installed_version=`cat /home/pi/VERSION.txt`
-echo "Current installed version is $installed_version"
-
-#get git version of distribution
-echo "svn trying to get version info from github"
-svn info https://github.com/CongducPham/LowCostLoRaGw/trunk/gw_full_latest | grep "Revision:" | cut -d ' ' --field=2 > /home/pi/git-VERSION-tmp.txt
-
-#in case we don't have internet connectivity, the file size is 0
-git_version_size=`stat -c %b /home/pi/git-VERSION-tmp.txt`
-		
-if [ "$git_version_size" != "0" ]
-then
-	mv /home/pi/git-VERSION-tmp.txt /home/pi/git-VERSION.txt
-	git_version=`cat /home/pi/git-VERSION.txt`
-	echo "github version is $git_version"
-	
-	auto_update=`jq ".gateway_conf.auto_update" gateway_conf.json`
-
-	if [ "$auto_update" = "true" ]
-	then
-		echo "Auto update is on, trying to update to latest version from github"
-		
-		if [ "$installed_version" != "$git_version" ]
-		then
-			echo "Launching update script to install latest version from github"
-			echo "Equivalent to full update with the web admin interface"
-			/home/pi/lora_gateway/scripts/update_gw.sh
-			sleep 5
-		else
-			echo "Installed version is up-to-date"
-		fi
-	else
-		echo "Auto update is off."
-	fi
-else
-	echo "N/A" > /home/pi/git-VERSION.txt
-	git_version=`cat /home/pi/git-VERSION.txt`
-	echo "svn could not get version info from github, mark as $git_version."
-	rm -rf /home/pi/git-VERSION-tmp.txt
-fi	
-############################################
-
-###
 ### Last item, run the gateway
 ############################################
 
@@ -171,4 +125,4 @@ fi
 sleep 10
 
 #repair if needed the mongodb database connection
-/home/pi/lora_gateway/scripts/mongo_repair.sh
+#/home/pi/lora_gateway/scripts/mongo_repair.sh
