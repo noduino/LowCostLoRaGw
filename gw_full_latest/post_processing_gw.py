@@ -1039,7 +1039,8 @@ while True:
 # '\' is reserved for message logging service
 #------------------------------------------------------------
 
-	if (ch=='\\' and _hasRadioData==True):
+	#if (ch=='\\' and _hasRadioData==True):
+	if (ch=='\\'):
 	
 		_hasRadioData=False
 		
@@ -1073,7 +1074,8 @@ while True:
 			#enabled clouds must be declared in clouds.json	
 			elif (ch=='!'): 
 
-				ldata = getAllLine()
+				#ldata = getAllLine()
+				ldata = sys.stdin.readline()
 				
 				print "number of enabled clouds is %d" % len(_enabled_clouds)	
 				
