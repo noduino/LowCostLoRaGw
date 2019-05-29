@@ -1,7 +1,7 @@
 #------------------------------------------------------------
 # Copyright 2016 Congduc Pham, University of Pau, France.
-# 
-# Congduc.Pham@univ-pau.fr 
+#
+# Congduc.Pham@univ-pau.fr
 #
 # This file is part of the low-cost LoRa gateway developped at University of Pau
 #
@@ -14,7 +14,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with the program.  If not, see <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------
@@ -39,12 +39,12 @@ def retrieve_enabled_clouds(cloud_array="clouds"):
 	f = open(os.path.expanduser(cloud_filename),"r")
 	string = f.read()
 	f.close()
-		
+
 	#change it into a python array
 	json_array = json.loads(string)
-	
+
 	hasCloudSection=1
-	
+
 	try:
 		#retrieving all cloud declarations
 		clouds = json_array[cloud_array]
@@ -54,14 +54,15 @@ def retrieve_enabled_clouds(cloud_array="clouds"):
 
 	if hasCloudSection==1:
 		print "Parsing cloud declarations"
-		
+
 		#filling _enabled_clouds
 		for cloud in clouds:
 			if cloud["enabled"]:
 				_enabled_clouds.append(cloud["script"])
 				print _enabled_clouds
-		
-		print "Parsed all cloud declarations"
-			 	
-	return _enabled_clouds		
 
+		print "Parsed all cloud declarations"
+
+	return _enabled_clouds
+
+#retrieve_enabled_clouds()
