@@ -19,7 +19,7 @@
 			"name":"Temporary storage for no Internet connection",
 			"script":"python CloudNoInternet.py",
 			"type":"file",            
-			"enabled":true
+			"enabled":false
 		},
 		{
 			"name":"Noduino API",
