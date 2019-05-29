@@ -5,12 +5,12 @@
 		"cr" : 5,
 		"sf" : 12,
 		"ch" : -1,
-		"freq" : -1
+		"freq" : 433.3
 	},
 	"gateway_conf" : {
-		"gateway_ID" : "000000XXXXXXDEF0",
-		"ref_latitude" : "43.314106",
-		"ref_longitude" : "-0.363887",
+		"gateway_ID": "MKLRB827EB8E763900",
+		"ref_latitude" : "39.992728",
+		"ref_longitude" : "116.450996",
 		"wappkey" : false,
 		"raw" : false,
 		"aes" : false,
