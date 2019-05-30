@@ -23,8 +23,6 @@
 #include "pressure.h"
 #include "vbat.h"
 
-#define PIN_POWER		7
-
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
 //#define WITH_APPKEY
@@ -191,13 +189,6 @@ void setup()
 
 	pinMode(6, OUTPUT);
 
-#ifndef LOW_POWER
-	pinMode(PIN_POWER, OUTPUT);
-	digitalWrite(PIN_POWER, HIGH);
-#endif
-
-	//delay(1000);
-
 	// Open serial communications and wait for port to open:
 	Serial.begin(115200);
 
@@ -298,18 +289,8 @@ void loop(void)
 	if (millis() > nextTransmissionTime) {
 #endif
 
-#ifdef LOW_POWER
-		digitalWrite(PIN_POWER, HIGH);
-		// security?
-		delay(200);
-#endif
-
 		pres = get_pressure();
 		vbat = get_vbat();
-
-#ifdef LOW_POWER
-		digitalWrite(PIN_POWER, LOW);
-#endif
 
 		PRINT_CSTSTR("%s", "Pressure is ");
 		PRINT_VALUE("%f", pres);
