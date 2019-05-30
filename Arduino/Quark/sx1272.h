@@ -394,51 +394,16 @@ const uint8_t INCORRECT_PACKET_TYPE = 2;
 /*!
  */
 struct pack {
-	// added by C. Pham
 #ifdef W_NET_KEY
 	uint8_t netkey[NET_KEY_LENGTH];
 #endif
-	//! Structure Variable : Packet destination
-	/*!
-	 */
 	uint8_t dst;
-
-	// added by C. Pham
-	//! Structure Variable : Packet type
-	/*!
-	 */
 	uint8_t type;
-
-	//! Structure Variable : Packet source
-	/*!
-	 */
 	uint8_t src;
-
-	//! Structure Variable : Packet number
-	/*!
-	 */
 	uint8_t packnum;
-
-	// modified by C. Pham
-	// will not be used in the transmitted packet
-	//! Structure Variable : Packet length
-	/*!
-	 */
 	uint8_t length;
-
-	// modified by C. Pham
-	// use a pointer instead of static variable to same memory footprint
-	//! Structure Variable : Packet payload
-	/*!
-	 */
 	uint8_t *data;
-
-	// modified by C. Pham
-	// will not be used in the transmitted packet
-	//! Structure Variable : Retry number
-	/*!
-	 */
-	uint8_t retry;
+	uint8_t retry;	/* retry number */
 };
 
 /******************************************************************************

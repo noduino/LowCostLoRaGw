@@ -49,6 +49,7 @@
 //#define BAND868
 //#define BAND900
 #define BAND433
+//#define BAND470
 ///////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////
@@ -59,23 +60,24 @@
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE NODE ADDRESS 
-#define node_addr 8
+#define node_addr		254
+#define DEST_ADDR		1
 //////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE LORA MODE
-#define LORAMODE  11	// BW=125KHz, SF=12, CR=4/5, sync=0x34
+#define LORAMODE		11	// BW=125KHz, SF=12, CR=4/5, sync=0x34
 //////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////
-// CHANGE HERE THE TIME IN MINUTES BETWEEN 2 READING & TRANSMISSION
-unsigned int idlePeriod = 10;	// 10 seconds
+// CHANGE HERE THE TIME IN SECONDS BETWEEN 2 READING & TRANSMISSION
+unsigned int idlePeriod = 30;	// 30 seconds
 ///////////////////////////////////////////////////////////////////
 
 #ifdef WITH_APPKEY
 // CHANGE HERE THE APPKEY, BUT IF GW CHECKS FOR APPKEY, MUST BE
 // IN THE APPKEY LIST MAINTAINED BY GW.
-uint8_t my_appKey[4] = { 5, 6, 7, 8 };
+uint8_t my_appKey[4] = { 5, 6, 8, 8 };
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -119,10 +121,11 @@ const uint32_t DEFAULT_CHANNEL = CH_10_868;
 // For HongKong, Japan, Malaysia, Singapore, Thailand, Vietnam: 920.36MHz     
 const uint32_t DEFAULT_CHANNEL = CH_08_900;
 #elif defined BAND433
-const uint32_t DEFAULT_CHANNEL = CH_03_433;	// 434.3MHz
+const uint32_t DEFAULT_CHANNEL = CH_00_433;	// 433.3MHz
+//const uint32_t DEFAULT_CHANNEL = CH_03_433;	// 434.3MHz
+#elif defined BAND470
+const uint32_t DEFAULT_CHANNEL = CH_00_470;	// 470.0MHz
 #endif
-
-#define DEFAULT_DEST_ADDR	1
 
 #ifdef WITH_ACK
 #define	NB_RETRIES			2
@@ -263,7 +266,7 @@ void setup()
 	PRINTLN;
 
 	// enable carrier sense
-	sx1272._enableCarrierSense = true;
+	//sx1272._enableCarrierSense = true;
 #ifdef LOW_POWER
 	// TODO: with low power, when setting the radio module in sleep mode
 	// there seem to be some issue with RSSI reading
@@ -335,7 +338,7 @@ void loop(void)
 
 		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
 		//strcpy(vbat_s, "noduino");
-		r_size = sprintf((char *)message + app_key_offset, "\!Vbat/%s/Press/%s", vbat_s, pres_s);
+		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/P/%s", vbat_s, pres_s);
 #endif
 
 		PRINT_CSTSTR("%s", "Sending ");
@@ -348,7 +351,7 @@ void loop(void)
 
 		int pl = r_size + app_key_offset;
 
-		sx1272.CarrierSense();
+		//sx1272.CarrierSense();
 
 		startSend = millis();
 
@@ -366,7 +369,7 @@ void loop(void)
 		int n_retry = NB_RETRIES;
 
 		do {
-			e = sx1272.sendPacketTimeoutACK(DEFAULT_DEST_ADDR,
+			e = sx1272.sendPacketTimeoutACK(DEST_ADDR,
 							message, pl);
 
 			if (e == 3)
@@ -381,7 +384,7 @@ void loop(void)
 
 		} while (e && n_retry);
 #else
-		e = sx1272.sendPacketTimeout(DEFAULT_DEST_ADDR, message, pl);
+		e = sx1272.sendPacketTimeout(DEST_ADDR, message, pl);
 #endif
 		endSend = millis();
 
