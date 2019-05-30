@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 #-------------------------------------------------------------------------------
 # Copyright 2016 Nicolas Bertuol, University of Pau, France.
 # 
@@ -87,15 +89,16 @@ def start_config_from_json() :
 	except KeyError:
 		pass
 	
-	try:			
-		if gateway_json_array["gateway_conf"]["downlink"]==0 :
-			call_string_cpp += " --ndl"	
-	except KeyError:
-		pass
+	#try:			
+	#	if gateway_json_array["gateway_conf"]["downlink"]==0 :
+	#		call_string_cpp += " --ndl"
+	#except KeyError:
+	#	pass
 			
 	print call_string_cpp+call_string_python+call_string_log_gw
 	#launch the commands
 	os.system(call_string_cpp + call_string_python + call_string_log_gw)
 	
 if __name__ == "__main__":
+	os.chdir(os.path.dirname(os.path.abspath(__file__)))
 	start_config_from_json()
