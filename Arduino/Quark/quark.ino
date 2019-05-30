@@ -26,9 +26,7 @@
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
 //#define WITH_APPKEY
-//if you are low on program memory, comment STRING_LIB to save about 2K
-//#define STRING_LIB
-//#define LOW_POWER
+#define LOW_POWER
 //#define WITH_ACK
 //#define LOW_POWER_TEST
 ///////////////////////////////////////////////////////////////////
@@ -69,7 +67,7 @@
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE TIME IN SECONDS BETWEEN 2 READING & TRANSMISSION
-unsigned int idlePeriod = 30;	// 30 seconds
+unsigned int idlePeriod = 40;	// 40 seconds
 ///////////////////////////////////////////////////////////////////
 
 #ifdef WITH_APPKEY
@@ -152,7 +150,6 @@ struct sx1272config {
 sx1272config my_sx1272config;
 #endif
 
-#ifndef STRING_LIB
 char *ftoa(char *a, double f, int precision)
 {
 	long p[] =
@@ -171,7 +168,6 @@ char *ftoa(char *a, double f, int precision)
 	itoa(desimal, a, 10);
 	return ret;
 }
-#endif
 
 void power_on_dev()
 {
@@ -258,10 +254,11 @@ void setup()
 
 	// enable carrier sense
 	//sx1272._enableCarrierSense = true;
+
 #ifdef LOW_POWER
 	// TODO: with low power, when setting the radio module in sleep mode
 	// there seem to be some issue with RSSI reading
-	sx1272._RSSIonSend = false;
+	//sx1272._RSSIonSend = false;
 #endif
 
 	// Set CRC off
@@ -270,10 +267,7 @@ void setup()
 	//PRINT_VALUE("%d", e);
 	//PRINTLN;
 
-	// Print a success message
 	PRINT_CSTSTR("%s", "SX1272 successfully configured\n");
-
-	//delay(500);
 }
 
 void loop(void)
@@ -305,10 +299,6 @@ void loop(void)
 		uint8_t r_size;
 
 		// the recommended format if now \!TC/22.5
-#ifdef STRING_LIB
-		r_size = sprintf((char *)message + app_key_offset, "%s",
-							String(pres).c_str());
-#else
 		char vbat_s[10], pres_s[10];
 		ftoa(vbat_s, vbat, 2);
 		ftoa(pres_s, pres, 2);
@@ -320,7 +310,6 @@ void loop(void)
 		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
 		//strcpy(vbat_s, "noduino");
 		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/P/%s", vbat_s, pres_s);
-#endif
 
 		PRINT_CSTSTR("%s", "Sending ");
 		PRINT_STR("%s", (char *)(message + app_key_offset));
@@ -405,36 +394,27 @@ void loop(void)
 		e = sx1272.setSleepMode();
 
 		if (!e)
-			PRINT_CSTSTR("%s",
-				     "Successfully switch LoRa module in sleep mode\n");
+			PRINT_CSTSTR("%s", "Successfully switch LoRa into sleep mode\n");
 		else
-			PRINT_CSTSTR("%s",
-				     "Could not switch LoRa module in sleep mode\n");
+			PRINT_CSTSTR("%s", "Could not switch LoRa into sleep mode\n");
 
 		FLUSHOUTPUT
 #ifdef LOW_POWER_TEST
-		    delay(10000);
+		delay(10000);
 #else
-		    delay(50);
+		delay(50);
 #endif
-
-		nCycle = idlePeriod / LOW_POWER_PERIOD;	//+ random(2,4);
 
 		for (int i = 0; i < nCycle; i++) {
 
-#if defined ARDUINO_AVR_PRO || defined ARDUINO_AVR_NANO || defined ARDUINO_AVR_UNO || defined ARDUINO_AVR_MINI || defined __AVR_ATmega32U4__
 			// ATmega328P, ATmega168, ATmega32U4
 			LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-#else
-			// use the delay function
-			delay(LOW_POWER_PERIOD * 1000);
-#endif
+
 			PRINT_CSTSTR("%s", ".");
 			FLUSHOUTPUT delay(10);
 		}
 
 		delay(50);
-
 #else
 		PRINT_VALUE("%ld", nextTransmissionTime);
 		PRINTLN;
