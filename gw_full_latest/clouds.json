@@ -28,37 +28,6 @@
 			"enabled":true
 		},	        	        							
 		{	
-			"name":"WAZIUP SMS Service ",
-			"script":"python CloudWAZIUP_SMS.py",
-			"type":"smsservice",
-			"enabled":false,
-			"always_enabled":false
-		},	
-		{
-			"name":"WAZIUP Orion cloud new API",
-			"script":"python CloudWAZIUP.py",
-			"type":"iotcloud",
-			"enabled":false
-		},	        	        							
-		{	
-			"name":"WAZIUP Orion cloud old API",
-			"script":"python CloudOrion.py",
-			"type":"iotcloud",			
-			"enabled":false
-		},		
-		{	
-			"name":"ThingSpeak cloud",
-			"script":"python CloudThingSpeak.py",
-			"type":"iotcloud",			
-			"enabled":false
-		},
-		{	
-			"name":"NodeRed flow",
-			"script":"python CloudNodeRed.py",
-			"type":"nodered",			
-			"enabled":false
-		},
-		{	
 			"name":"MQTT cloud",
 			"script":"python CloudMQTT.py",
 			"type":"MQTT on test.mosquitto.org",			
@@ -69,44 +38,9 @@
 			"script":"python CloudGpsFile.py",
 			"type":"file",			
 			"enabled":false
-		},									
-		{	
-			"name":"GroveStreams cloud",
-			"script":"python CloudGroveStreams.py",
-			"type":"iotcloud",			
-			"enabled":false
-		},
-		{	
-			"name":"Firebase cloud",
-			"script":"python CloudFireBase.py",
-			"type":"jsoncloud",			
-			"enabled":false
-		},		
-		{	
-			"name":"example template",
-			"script":"name of your script, preceded by the script launcher",
-			"type":"whatever you want FYI",
-			"server":"",
-			"login":"",
-			"password":"",
-			"folder":"",			
-			"write_key":"",
-			"enabled":false
-		}				
+		}
 	],
 	"encrypted_clouds" : [
-		{	
-			"name":"TheThingsNetwork cloud",
-			"script":"python CloudTTN.py",
-			"type":"TTN",			
-			"enabled":false			
-		},	
-		{	
-			"name":"NodeRed flow",
-			"script":"python CloudNodeRed.py",
-			"type":"nodered",			
-			"enabled":false
-		},
 		{	
 			"name":"MQTT cloud",
 			"script":"python CloudMQTT.py",
@@ -121,18 +55,6 @@
 		}
 	],
 	"lorawan_encrypted_clouds" : [
-		{	
-			"name":"TheThingsNetwork cloud",
-			"script":"python CloudTTN.py",
-			"type":"TTN",			
-			"enabled":false			
-		},	
-		{	
-			"name":"NodeRed flow",
-			"script":"python CloudNodeRed.py",
-			"type":"nodered",			
-			"enabled":false
-		},
 		{	
 			"name":"MQTT cloud",
 			"script":"python CloudMQTT.py",
