@@ -270,6 +270,28 @@ void setup()
 	PRINT_CSTSTR("%s", "SX1272 successfully configured\n");
 }
 
+void qsetup()
+{
+	pressure_init();	// initialization of the sensor
+	sx1272.ON();		// power on the module
+
+	// BW=125KHz, SF=12, CR=4/5, sync=0x34
+	sx1272.setMode(loraMode);
+
+	// Select frequency channel
+	sx1272.setChannel(DEFAULT_CHANNEL);
+
+#ifdef PABOOST
+	// Select amplifier line; PABOOST or RFO
+	sx1272._needPABOOST = true;
+#endif
+
+	sx1272.setPowerDBM((uint8_t) MAX_DBM);
+
+	// Set the node address and print the result
+	sx1272.setNodeAddress(node_addr);
+}
+
 void loop(void)
 {
 	long startSend;
@@ -392,29 +414,40 @@ void loop(void)
 		PRINT_CSTSTR("%s", "Switch to power saving mode\n");
 
 		e = sx1272.setSleepMode();
-
 		if (!e)
 			PRINT_CSTSTR("%s", "Successfully switch LoRa into sleep mode\n");
 		else
 			PRINT_CSTSTR("%s", "Could not switch LoRa into sleep mode\n");
 
 		FLUSHOUTPUT
-#ifdef LOW_POWER_TEST
-		delay(10000);
-#else
 		delay(50);
-#endif
+
+		SPI.end();
+		digitalWrite(10, LOW);
+		digitalWrite(11, LOW);
+		digitalWrite(12, LOW);
+		digitalWrite(13, LOW);
+
+		Wire.end();
+		digitalWrite(A4, LOW);	// SDA
+		digitalWrite(A5, LOW);	// SCL
+
+		power_off_dev();
 
 		for (int i = 0; i < nCycle; i++) {
 
 			// ATmega328P, ATmega168, ATmega32U4
 			LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 
-			PRINT_CSTSTR("%s", ".");
+			//PRINT_CSTSTR("%s", ".");
 			FLUSHOUTPUT delay(10);
 		}
 
 		delay(50);
+
+		power_on_dev();
+		delay(100);
+		qsetup();
 #else
 		PRINT_VALUE("%ld", nextTransmissionTime);
 		PRINTLN;
