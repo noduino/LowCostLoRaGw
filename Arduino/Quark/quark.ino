@@ -444,14 +444,19 @@ void loop(void)
 			PRINT_CSTSTR("%s", "Could not switch LoRa into sleep mode\n");
 #endif
 
-		FLUSHOUTPUT
-		delay(50);
+		//sx1272.reset();
+		//sx1272.OFF();
+
+		digitalWrite(SX1272_RST, LOW);
 
 		SPI.end();
 		digitalWrite(10, LOW);
 		digitalWrite(11, LOW);
 		digitalWrite(12, LOW);
 		digitalWrite(13, LOW);
+
+		FLUSHOUTPUT
+		delay(50);
 
 		Wire.end();
 		digitalWrite(A4, LOW);	// SDA
