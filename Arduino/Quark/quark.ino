@@ -23,6 +23,9 @@
 #include "pressure.h"
 #include "vbat.h"
 
+#define USE_SI2301		1
+#define USE_SX1278		1
+
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
 //#define WITH_APPKEY
@@ -56,7 +59,7 @@
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE NODE ADDRESS 
-#define node_addr		254
+#define node_addr		253
 #define DEST_ADDR		1
 //////////////////////////////////////////////////////////////////
 
@@ -171,19 +174,31 @@ char *ftoa(char *a, double f, int precision)
 
 void power_on_dev()
 {
+#ifndef USE_SI2301
 	digitalWrite(6, HIGH);
+#else
+	digitalWrite(7, LOW);
+#endif
 }
 
 void power_off_dev()
 {
+#ifndef USE_SI2301
 	digitalWrite(6, LOW);
+#else
+	digitalWrite(7, HIGH);
+#endif
 }
 
 void setup()
 {
 	int e;
 
+#ifndef USE_SI2301
 	pinMode(6, OUTPUT);
+#else
+	pinMode(7, OUTPUT);
+#endif
 
 	// Open serial communications and wait for port to open:
 	Serial.begin(115200);
@@ -200,6 +215,8 @@ void setup()
 	power_on_dev();		// turn on device power
 
 	pressure_init();	// initialization of the sensor
+
+#ifdef USE_SX1278
 	sx1272.ON();		// power on the module
 
 #ifdef WITH_EEPROM
@@ -268,11 +285,14 @@ void setup()
 	//PRINTLN;
 
 	PRINT_CSTSTR("%s", "SX1272 successfully configured\n");
+#endif
 }
 
 void qsetup()
 {
 	pressure_init();	// initialization of the sensor
+
+#ifdef USE_SX1278
 	sx1272.ON();		// power on the module
 
 	// BW=125KHz, SF=12, CR=4/5, sync=0x34
@@ -290,6 +310,7 @@ void qsetup()
 
 	// Set the node address and print the result
 	sx1272.setNodeAddress(node_addr);
+#endif
 }
 
 void loop(void)
@@ -347,6 +368,7 @@ void loop(void)
 
 		startSend = millis();
 
+#ifdef USE_SX1278
 #ifdef WITH_APPKEY
 		// indicate that we have an appkey
 		sx1272.setPacketType(PKT_TYPE_DATA | PKT_FLAG_DATA_WAPPKEY);
@@ -409,15 +431,18 @@ void loop(void)
 		PRINT_CSTSTR("%s", "Remaining ToA is ");
 		PRINT_VALUE("%d", sx1272.getRemainingToA());
 		PRINTLN;
+#endif
 
 #ifdef LOW_POWER
 		PRINT_CSTSTR("%s", "Switch to power saving mode\n");
 
+#ifdef USE_SX1278
 		e = sx1272.setSleepMode();
 		if (!e)
 			PRINT_CSTSTR("%s", "Successfully switch LoRa into sleep mode\n");
 		else
 			PRINT_CSTSTR("%s", "Could not switch LoRa into sleep mode\n");
+#endif
 
 		FLUSHOUTPUT
 		delay(50);
