@@ -31,10 +31,10 @@
 #define node_addr		252
 #endif
 
-//#define USE_SX1278		1
+#define USE_SX1278		1
 #define DEST_ADDR		1
 
-//#define LOW_POWER
+#define LOW_POWER
 
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
