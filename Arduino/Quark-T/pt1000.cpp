@@ -22,7 +22,7 @@ float cal_temp(uint32_t Rt)
 	float temp;
 	float LR;
 	float HR;
-	int T;
+	float T;
 	uint8_t i;
 
 	uint8_t Bottom, Top;
@@ -46,29 +46,28 @@ float cal_temp(uint32_t Rt)
 			Bottom = i;
 			i = (Top + Bottom) / 2;
 		} else {
-			T = (int)i *5 - 200;
-			temp = (float)T;
+			T = i * 5.0 - 200.0;
 
-			return temp;
+			return T;
 		}
 	}
 
-	T = (int)i *5 - 200;
+	T = i * 5.0 - 200.0;
 
 	LR = PT100_TABLE[Bottom];
 	HR = PT100_TABLE[Top];
 
-	temp = (((Rt - LR) * 5) / (HR - LR)) + T;
+	temp = (((Rt - LR) * 5.0) / (HR - LR)) + T;
 
 	return temp;
 }
 
-uint32_t pt1000_get_rt(uint32_t uv)
+uint32_t pt1000_get_rt(float uv)
 {
 	uint32_t rtd = 0;
 
 	if (uv != 0) {
-		rtd = (uint32_t) (10 * 1000.0 * uv / (2489000 - uv));
+		rtd = 10.0 * 1000.0 * uv / (2491000.0 - uv);
 	} else {
 		rtd = 0;
 	}
@@ -79,8 +78,8 @@ uint32_t pt1000_get_rt(uint32_t uv)
 
 float pt1000_get_temp()
 {
-	int uv = get_adc_uv();
-	int rt = pt1000_get_rt(uv);
+	float uv = get_adc_uv();
+	uint32_t rt = pt1000_get_rt(uv);
 
 	return cal_temp(rt);
 }
