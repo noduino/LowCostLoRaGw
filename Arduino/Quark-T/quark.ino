@@ -87,11 +87,10 @@ uint8_t my_appKey[4] = { 5, 6, 8, 8 };
 uint8_t message[50];
 ///////////////////////////////////////////////////////////////////
 
-#define PRINTLN                   Serial.println("")
-#define PRINT_CSTSTR(fmt,param)   Serial.print(F(param))
-#define PRINT_STR(fmt,param)      Serial.print(param)
-#define PRINT_VALUE(fmt,param)    Serial.print(param)
-#define FLUSHOUTPUT               Serial.flush();
+#define INFO_S(fmt,param)			Serial.print(F(param))
+#define INFO(fmt,param)				Serial.print(param)
+#define INFOLN(fmt,param)			Serial.println(param)
+#define FLUSHOUTPUT					Serial.flush();
 
 #ifdef WITH_EEPROM
 #include <EEPROM.h>
@@ -207,12 +206,12 @@ void setup()
 	Serial.begin(115200);
 
 	// Print a start message
-	PRINT_CSTSTR("%s", "Noduino Quark LoRa Node\n");
+	INFO_S("%s", "Noduino Quark LoRa Node\n");
 
 // See http://www.nongnu.org/avr-libc/user-manual/using_tools.html
 // for the list of define from the AVR compiler
 #ifdef __AVR_ATmega328P__
-	PRINT_CSTSTR("%s", "ATmega328P detected\n");
+	INFO_S("%s", "ATmega328P detected\n");
 #endif
 
 	power_on_dev();		// turn on device power
@@ -228,13 +227,12 @@ void setup()
 
 	// found a valid config?
 	if (my_sx1272config.flag1 == 0x12 && my_sx1272config.flag2 == 0x34) {
-		PRINT_CSTSTR("%s", "Get back previous sx1272 config\n");
+		INFO_S("%s", "Get back previous sx1272 config\n");
 
 		// set sequence number for SX1272 library
 		sx1272._packetNumber = my_sx1272config.seq;
-		PRINT_CSTSTR("%s", "Using packet sequence number of ");
-		PRINT_VALUE("%d", sx1272._packetNumber);
-		PRINTLN;
+		INFO_S("%s", "Using packet sequence number of ");
+		INFOLN("%d", sx1272._packetNumber);
 	} else {
 		// otherwise, write config and start over
 		my_sx1272config.flag1 = 0x12;
@@ -246,15 +244,13 @@ void setup()
 	// We use the LoRaWAN mode:
 	// BW=125KHz, SF=12, CR=4/5, sync=0x34
 	e = sx1272.setMode(loraMode);
-	PRINT_CSTSTR("%s", "Setting Mode: state ");
-	PRINT_VALUE("%d", e);
-	PRINTLN;
+	INFO_S("%s", "Setting Mode: state ");
+	INFOLN("%d", e);
 
 	// Select frequency channel
 	e = sx1272.setChannel(DEFAULT_CHANNEL);
-	PRINT_CSTSTR("%s", "Setting Channel: state ");
-	PRINT_VALUE("%d", e);
-	PRINTLN;
+	INFO_S("%s", "Setting Channel: state ");
+	INFOLN("%d", e);
 
 	// Select amplifier line; PABOOST or RFO
 #ifdef PABOOST
@@ -262,15 +258,13 @@ void setup()
 #endif
 
 	e = sx1272.setPowerDBM((uint8_t) MAX_DBM);
-	PRINT_CSTSTR("%s", "Setting Power: state ");
-	PRINT_VALUE("%d", e);
-	PRINTLN;
+	INFO_S("%s", "Setting Power: state ");
+	INFOLN("%d", e);
 
 	// Set the node address and print the result
 	e = sx1272.setNodeAddress(node_addr);
-	PRINT_CSTSTR("%s", "Setting node addr: state ");
-	PRINT_VALUE("%d", e);
-	PRINTLN;
+	INFO_S("%s", "Setting node addr: state ");
+	INFOLN("%d", e);
 
 	// enable carrier sense
 	//sx1272._enableCarrierSense = true;
@@ -283,11 +277,8 @@ void setup()
 
 	// Set CRC off
 	//e = sx1272.setCRC_OFF();
-	//PRINT_CSTSTR("%s","Setting CRC off: state ");
-	//PRINT_VALUE("%d", e);
-	//PRINTLN;
 
-	PRINT_CSTSTR("%s", "SX1272 successfully configured\n");
+	INFO_S("%s", "SX1272 successfully configured\n");
 #endif
 }
 
@@ -332,9 +323,8 @@ void loop(void)
 		temp = pt1000_get_temp();
 		vbat = get_vbat();
 
-		PRINT_CSTSTR("%s", "Temperature is ");
-		PRINT_VALUE("%f", temp);
-		PRINTLN;
+		INFO_S("%s", "Temperature is ");
+		INFOLN("%f", temp);
 
 #ifdef WITH_APPKEY
 		app_key_offset = sizeof(my_appKey);
@@ -348,22 +338,19 @@ void loop(void)
 		char vbat_s[10], temp_s[10];
 		ftoa(vbat_s, vbat, 2);
 		ftoa(temp_s, temp, 2);
-		PRINT_CSTSTR("%s", "Vbat = [");
-		PRINT_STR("%s", (char *)vbat_s);
-		PRINT_CSTSTR("%s", "]");
-		PRINTLN;
+		INFO_S("%s", "Vbat = [");
+		INFO("%s", (char *)vbat_s);
+		INFO_S("%s", "]\n");
 
 		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
 		//strcpy(vbat_s, "noduino");
 		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/T/%s", vbat_s, temp_s);
 
-		PRINT_CSTSTR("%s", "Sending ");
-		PRINT_STR("%s", (char *)(message + app_key_offset));
-		PRINTLN;
+		INFO_S("%s", "Sending ");
+		INFOLN("%s", (char *)(message + app_key_offset));
 
-		PRINT_CSTSTR("%s", "Real payload size is ");
-		PRINT_VALUE("%d", r_size);
-		PRINTLN;
+		INFO_S("%s", "Real payload size is ");
+		INFOLN("%d", r_size);
 
 		int pl = r_size + app_key_offset;
 
@@ -390,14 +377,14 @@ void loop(void)
 							message, pl);
 
 			if (e == 3)
-				PRINT_CSTSTR("%s", "No ACK");
+				INFO_S("%s", "No ACK");
 
 			n_retry--;
 
 			if (n_retry)
-				PRINT_CSTSTR("%s", "Retry");
+				INFO_S("%s", "Retry");
 			else
-				PRINT_CSTSTR("%s", "Abort");
+				INFO_S("%s", "Abort");
 
 		} while (e && n_retry);
 #else
@@ -411,40 +398,34 @@ void loop(void)
 		EEPROM.put(0, my_sx1272config);
 #endif
 
-		PRINT_CSTSTR("%s", "LoRa pkt size ");
-		PRINT_VALUE("%d", pl);
-		PRINTLN;
+		INFO_S("%s", "LoRa pkt size ");
+		INFOLN("%d", pl);
 
-		PRINT_CSTSTR("%s", "LoRa pkt seq ");
-		PRINT_VALUE("%d", sx1272.packet_sent.packnum);
-		PRINTLN;
+		INFO_S("%s", "LoRa pkt seq ");
+		INFOLN("%d", sx1272.packet_sent.packnum);
 
-		PRINT_CSTSTR("%s", "LoRa Sent in ");
-		PRINT_VALUE("%ld", endSend - startSend);
-		PRINTLN;
+		INFO_S("%s", "LoRa Sent in ");
+		INFOLN("%ld", endSend - startSend);
 
-		PRINT_CSTSTR("%s", "LoRa Sent w/CAD in ");
-		PRINT_VALUE("%ld", endSend - sx1272._startDoCad);
-		PRINTLN;
+		INFO_S("%s", "LoRa Sent w/CAD in ");
+		INFOLN("%ld", endSend - sx1272._startDoCad);
 
-		PRINT_CSTSTR("%s", "Packet sent, state ");
-		PRINT_VALUE("%d", e);
-		PRINTLN;
+		INFO_S("%s", "Packet sent, state ");
+		INFOLN("%d", e);
 
-		PRINT_CSTSTR("%s", "Remaining ToA is ");
-		PRINT_VALUE("%d", sx1272.getRemainingToA());
-		PRINTLN;
+		INFO_S("%s", "Remaining ToA is ");
+		INFOLN("%d", sx1272.getRemainingToA());
 #endif
 
 #ifdef LOW_POWER
-		PRINT_CSTSTR("%s", "Switch to power saving mode\n");
+		INFO_S("%s", "Switch to power saving mode\n");
 
 #ifdef USE_SX1278
 		e = sx1272.setSleepMode();
 		if (!e)
-			PRINT_CSTSTR("%s", "Successfully switch LoRa into sleep mode\n");
+			INFO_S("%s", "Successfully switch LoRa into sleep mode\n");
 		else
-			PRINT_CSTSTR("%s", "Could not switch LoRa into sleep mode\n");
+			INFO_S("%s", "Could not switch LoRa into sleep mode\n");
 #endif
 
 		//sx1272.reset();
@@ -472,7 +453,7 @@ void loop(void)
 			// ATmega328P, ATmega168, ATmega32U4
 			LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 
-			//PRINT_CSTSTR("%s", ".");
+			//INFO_S("%s", ".");
 			FLUSHOUTPUT delay(10);
 		}
 
@@ -482,15 +463,13 @@ void loop(void)
 		delay(100);
 		qsetup();
 #else
-		PRINT_VALUE("%ld", nextTransmissionTime);
-		PRINTLN;
-		PRINT_CSTSTR("%s", "Will send next value at\n");
+		INFOLN("%ld", nextTransmissionTime);
+		INFO_S("%s", "Will send next value at\n");
 		// use a random part also to avoid collision
 		nextTransmissionTime =
 		    millis() + (unsigned long)idlePeriod * 1000 +
 		    (unsigned long)random(15, 60) * 10;
-		PRINT_VALUE("%ld", nextTransmissionTime);
-		PRINTLN;
+		INFOLN("%ld", nextTransmissionTime);
 	}
 #endif
 }
