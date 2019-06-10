@@ -22,8 +22,11 @@
 #include <Wire.h>
 #include "sx1272.h"
 #include "vbat.h"
+#include "gps.h"
 
 //#define USE_SI2301		1
+
+#define ENABLE_GPS		1
 
 #ifdef USE_SI2301
 #define node_addr		249
@@ -280,6 +283,10 @@ void setup()
 
 	INFO_S("%s", "SX1272 successfully configured\n");
 #endif
+
+#ifdef ENABLE_GPS
+	gps_setup();
+#endif
 }
 
 void qsetup()
@@ -305,6 +312,25 @@ void qsetup()
 	// Set the node address and print the result
 	sx1272.setNodeAddress(node_addr);
 #endif
+
+#ifdef ENABLE_GPS
+	gps_setup();
+#endif
+}
+
+void get_pos()
+{
+	// Get a valid position from the GPS
+	int valid_pos = 0;
+
+	uint32_t timeout = millis();
+	do {
+		if (Serial.available())
+		valid_pos = gps_decode(Serial.read());
+	} while ((millis() - timeout < 2000) && ! valid_pos) ;
+
+	if (valid_pos) {
+	}
 }
 
 void loop(void)
@@ -326,6 +352,8 @@ void loop(void)
 		INFO_S("%s", "Temperature is ");
 		INFOLN("%f", temp);
 
+		get_pos();
+
 #ifdef WITH_APPKEY
 		app_key_offset = sizeof(my_appKey);
 		// set the app key in the payload
@@ -344,7 +372,7 @@ void loop(void)
 
 		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
 		//strcpy(vbat_s, "noduino");
-		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/T/%s", vbat_s, temp_s);
+		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/T/%s/lat/%s/lon/%s", vbat_s, temp_s, gps_aprs_lat, gps_aprs_lon);
 
 		INFO_S("%s", "Sending ");
 		INFOLN("%s", (char *)(message + app_key_offset));
