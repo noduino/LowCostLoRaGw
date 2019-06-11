@@ -26,7 +26,8 @@
 
 //#define USE_SI2301		1
 
-#define ENABLE_GPS		1
+#define ENABLE_GPS			1
+#define DISABLE_SX1278		1
 
 #ifdef USE_SI2301
 #define node_addr		249
@@ -34,10 +35,9 @@
 #define node_addr		250
 #endif
 
-#define USE_SX1278		1
-#define DEST_ADDR		1
+#define DEST_ADDR				1
 
-#define LOW_POWER
+//#define LOW_POWER				1
 
 ///////////////////////////////////////////////////////////////////
 //#define WITH_EEPROM
@@ -206,7 +206,11 @@ void setup()
 #endif
 
 	// Open serial communications and wait for port to open:
+#ifdef ENABLE_GPS
+	Serial.begin(9600);
+#else
 	Serial.begin(115200);
+#endif
 
 	// Print a start message
 	INFO_S("%s", "Noduino Quark LoRa Node\n");
@@ -221,7 +225,7 @@ void setup()
 
 	//sht2x_init();		// initialization of the sensor
 
-#ifdef USE_SX1278
+#ifndef DISABLE_SX1278
 	sx1272.ON();		// power on the module
 
 #ifdef WITH_EEPROM
@@ -293,7 +297,7 @@ void qsetup()
 {
 	//sht2x_init();	// initialization of the sensor
 
-#ifdef USE_SX1278
+#ifndef DISABLE_SX1278
 	sx1272.ON();		// power on the module
 
 	// BW=125KHz, SF=12, CR=4/5, sync=0x34
@@ -386,7 +390,7 @@ void loop(void)
 
 		startSend = millis();
 
-#ifdef USE_SX1278
+#ifndef DISABLE_SX1278
 #ifdef WITH_APPKEY
 		// indicate that we have an appkey
 		sx1272.setPacketType(PKT_TYPE_DATA | PKT_FLAG_DATA_WAPPKEY);
@@ -448,7 +452,7 @@ void loop(void)
 #ifdef LOW_POWER
 		INFO_S("%s", "Switch to power saving mode\n");
 
-#ifdef USE_SX1278
+#ifndef DISABLE_SX1278
 		e = sx1272.setSleepMode();
 		if (!e)
 			INFO_S("%s", "Successfully switch LoRa into sleep mode\n");
