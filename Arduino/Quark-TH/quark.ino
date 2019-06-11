@@ -29,6 +29,8 @@
 #define ENABLE_GPS			1
 #define DISABLE_SX1278		1
 
+#define ENABLE_CAD			1
+
 #ifdef USE_SI2301
 #define node_addr		249
 #else
@@ -76,7 +78,7 @@
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE TIME IN SECONDS BETWEEN 2 READING & TRANSMISSION
-unsigned int idlePeriod = 64;	// 64 seconds
+unsigned int idlePeriod = 5;	// 64 seconds
 ///////////////////////////////////////////////////////////////////
 
 #ifdef WITH_APPKEY
@@ -273,8 +275,10 @@ void setup()
 	INFO_S("%s", "Setting node addr: state ");
 	INFOLN("%d", e);
 
+#ifdef ENABLE_CAD
 	// enable carrier sense
-	//sx1272._enableCarrierSense = true;
+	sx1272._enableCarrierSense = true;
+#endif
 
 #ifdef LOW_POWER
 	// TODO: with low power, when setting the radio module in sleep mode
@@ -315,6 +319,11 @@ void qsetup()
 
 	// Set the node address and print the result
 	sx1272.setNodeAddress(node_addr);
+
+#ifdef ENABLE_CAD
+	// enable carrier sense
+	sx1272._enableCarrierSense = true;
+#endif
 #endif
 
 #ifdef ENABLE_GPS
@@ -386,7 +395,9 @@ void loop(void)
 
 		int pl = r_size + app_key_offset;
 
-		//sx1272.CarrierSense();
+#ifdef ENABLE_CAD
+		sx1272.CarrierSense();
+#endif
 
 		startSend = millis();
 
