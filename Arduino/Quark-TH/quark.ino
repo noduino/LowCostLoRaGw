@@ -24,10 +24,10 @@
 #include "vbat.h"
 #include "gps.h"
 
-//#define USE_SI2301		1
+#define USE_SI2301		1
 
 #define ENABLE_GPS			1
-#define DISABLE_SX1278		1
+//#define DISABLE_SX1278		1
 
 #define ENABLE_CAD			1
 
@@ -78,7 +78,7 @@
 
 ///////////////////////////////////////////////////////////////////
 // CHANGE HERE THE TIME IN SECONDS BETWEEN 2 READING & TRANSMISSION
-unsigned int idlePeriod = 5;	// 64 seconds
+unsigned int idlePeriod = 6;	// 64 seconds
 ///////////////////////////////////////////////////////////////////
 
 #ifdef WITH_APPKEY
@@ -160,22 +160,42 @@ struct sx1272config {
 sx1272config my_sx1272config;
 #endif
 
-char *ftoa(char *a, double f, int precision)
+/* only support .0001 */
+char *ftoa(char *a, float f, int preci)
 {
 	long p[] =
-	    { 0, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000 };
+	    {0, 10, 100, 1000, 10000};
 
 	char *ret = a;
-	long heiltal = (long)f;
-	itoa(heiltal, a, 10);
+
+	long ipart = (long)f;
+
+	//INFOLN("%d", ipart);
+
+	itoa(ipart, a, 10);		//int16, -32,768 ~ 32,767 
+
 	while (*a != '\0')
 		a++;
+
 	*a++ = '.';
-	long desimal = abs((long)((f - heiltal) * p[precision]));
-	if (desimal < p[precision - 1]) {
-		*a++ = '0';
+
+	long fpart = abs(f * p[preci] - ipart * p[preci]);
+
+	//INFOLN("%d", fpart);
+
+	if (fpart > 0) {
+		if (fpart < p[preci]/10) {
+			*a++ = '0';
+		}
+		if (fpart < p[preci]/100) {
+			*a++ = '0';
+		}
+		if (fpart < p[preci]/1000) {
+			*a++ = '0';
+		}
 	}
-	itoa(desimal, a, 10);
+
+	itoa(fpart, a, 10);
 	return ret;
 }
 
@@ -376,16 +396,17 @@ void loop(void)
 		uint8_t r_size;
 
 		// the recommended format if now \!TC/22.5
-		char vbat_s[10], temp_s[10];
+		char vbat_s[10], temp_s[10], lat_s[12], lon_s[12], alt_s[10];
 		ftoa(vbat_s, vbat, 2);
 		ftoa(temp_s, temp, 2);
-		INFO_S("%s", "Vbat = [");
-		INFO("%s", (char *)vbat_s);
-		INFO_S("%s", "]\n");
+		ftoa(lat_s, gps_lat, 4);
+		ftoa(lon_s, gps_lon, 4);
+		ftoa(alt_s, gps_altitude, 0);
 
 		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
 		//strcpy(vbat_s, "noduino");
-		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/T/%s/lat/%s/lon/%s", vbat_s, temp_s, gps_aprs_lat, gps_aprs_lon);
+		r_size = sprintf((char *)message + app_key_offset, "\\!U/%s/T/%s/lat/%s/lon/%s/alt/%s",
+					vbat_s, temp_s, lat_s, lon_s, alt_s);
 
 		INFO_S("%s", "Sending ");
 		INFOLN("%s", (char *)(message + app_key_offset));
@@ -394,6 +415,36 @@ void loop(void)
 		INFOLN("%d", r_size);
 
 		int pl = r_size + app_key_offset;
+
+#if 0
+		float a=39.8822, b=-24.3334, c=119.62, d=12.0045, e=12.035, f=119.0001;
+
+		INFOLN("%f", a);
+
+		ftoa(lat_s, a, 3);
+		INFO_S("%s", "lat = ");
+		INFOLN("%s", lat_s);
+
+		ftoa(lat_s, b, 3);
+		INFO_S("%s", "lat = ");
+		INFOLN("%s", lat_s);
+
+		ftoa(lat_s, c, 4);
+		INFO_S("%s", "lat = ");
+		INFOLN("%s", lat_s);
+
+		ftoa(lat_s, d, 4);
+		INFO_S("%s", "lat = ");
+		INFOLN("%s", lat_s);
+
+		ftoa(lat_s, e, 2);
+		INFO_S("%s", "lat = ");
+		INFOLN("%s", lat_s);
+
+		ftoa(lat_s, f, 4);
+		INFO_S("%s", "lat = ");
+		INFOLN("%s", lat_s);
+#endif
 
 #ifdef ENABLE_CAD
 		sx1272.CarrierSense();
