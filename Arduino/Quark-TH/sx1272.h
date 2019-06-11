@@ -39,6 +39,8 @@
 #include <inttypes.h>
 #endif
 
+#define DEBUG_CAD	1
+
 // added by C. Pham
 // do not remove!
 #define W_REQUESTED_ACK
