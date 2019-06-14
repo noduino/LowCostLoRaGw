@@ -24,6 +24,7 @@
 #include "vbat.h"
 
 //#define USE_SI2301		1
+#define ENABLE_CAD		1
 
 #ifdef USE_SI2301
 #define node_addr		253
@@ -272,7 +273,9 @@ void setup()
 	PRINTLN;
 
 	// enable carrier sense
-	//sx1272._enableCarrierSense = true;
+#ifdef ENABLE_CAD
+	sx1272._enableCarrierSense = true;
+#endif
 
 #ifdef LOW_POWER
 	// TODO: with low power, when setting the radio module in sleep mode
@@ -312,6 +315,11 @@ void qsetup()
 
 	// Set the node address and print the result
 	sx1272.setNodeAddress(node_addr);
+
+#ifdef ENABLE_CAD
+	sx1272._enableCarrierSense = true;
+#endif
+
 #endif
 }
 
@@ -366,7 +374,9 @@ void loop(void)
 
 		int pl = r_size + app_key_offset;
 
-		//sx1272.CarrierSense();
+#ifdef ENABLE_CAD
+		sx1272.CarrierSense();
+#endif
 
 		startSend = millis();
 
