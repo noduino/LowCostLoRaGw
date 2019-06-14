@@ -80,6 +80,5 @@ float get_adc_uv()
 
 	Serial.print("uv = ");
 	Serial.println(uv);
-    // uncomment line below to convert reading to microvolts
     return uv;
 }

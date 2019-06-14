@@ -24,6 +24,7 @@
 #include "vbat.h"
 
 //#define USE_SI2301		1
+#define ENABLE_CAD			1
 
 #ifdef USE_SI2301
 #define node_addr		251
@@ -266,8 +267,10 @@ void setup()
 	INFO_S("%s", "Setting node addr: state ");
 	INFOLN("%d", e);
 
+#ifdef ENABLE_CAD
 	// enable carrier sense
-	//sx1272._enableCarrierSense = true;
+	sx1272._enableCarrierSense = true;
+#endif
 
 #ifdef LOW_POWER
 	// TODO: with low power, when setting the radio module in sleep mode
@@ -304,6 +307,12 @@ void qsetup()
 
 	// Set the node address and print the result
 	sx1272.setNodeAddress(node_addr);
+
+#ifdef ENABLE_CAD
+	// enable carrier sense
+	sx1272._enableCarrierSense = true;
+#endif
+
 #endif
 }
 
@@ -338,9 +347,6 @@ void loop(void)
 		char vbat_s[10], temp_s[10];
 		ftoa(vbat_s, vbat, 2);
 		ftoa(temp_s, temp, 2);
-		INFO_S("%s", "Vbat = [");
-		INFO("%s", (char *)vbat_s);
-		INFO_S("%s", "]\n");
 
 		// this is for testing, uncomment if you just want to test, without a real pressure sensor plugged
 		//strcpy(vbat_s, "noduino");
@@ -354,7 +360,9 @@ void loop(void)
 
 		int pl = r_size + app_key_offset;
 
-		//sx1272.CarrierSense();
+#ifdef ENABLE_CAD
+		sx1272.CarrierSense();
+#endif
 
 		startSend = millis();
 
@@ -461,7 +469,8 @@ void loop(void)
 
 		power_on_dev();
 		delay(100);
-		qsetup();
+
+		setup();
 #else
 		INFOLN("%ld", nextTransmissionTime);
 		INFO_S("%s", "Will send next value at\n");
