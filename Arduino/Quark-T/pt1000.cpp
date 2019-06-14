@@ -31,14 +31,14 @@ float cal_temp(uint32_t Rt)
 		return 0.0;
 	}
 
-	if (Rt > PT100_TABLE[210]) {
+	if (Rt > PT100_TABLE[99]) {
 		return 1.0;
 	}
 
 	Bottom = 0;
-	Top = 210;
+	Top = 99;
 
-	for (i = 105; (Top - Bottom) != 1;) {
+	for (i = 49; (Top - Bottom) != 1;) {
 		if (Rt < PT100_TABLE[i]) {
 			Top = i;
 			i = (Top + Bottom) / 2;
