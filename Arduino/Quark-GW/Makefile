@@ -50,7 +50,7 @@ endif
 
 #Note that if your program has dependencies other than those
 #already listed below, you will need to add them accordingly.
-C_MODULES =  										\
+C_MODULES =  											\
 $(ARDUINO_CORES)/wiring_pulse.c 						\
 $(ARDUINO_CORES)/wiring_analog.c 						\
 $(ARDUINO_CORES)/wiring.c 								\
@@ -71,15 +71,17 @@ $(ARDUINO_CORES)/IPAddress.cpp 							\
 $(ARDUINO_CORES)/new.cpp 								\
 $(LIB_DIR)/SPI/SPI.cpp									\
 $(LIB_DIR)/Ethernet/src/Dns.cpp  			   		\
-$(LIB_DIR)/Ethernet/src/Dhcp.cpp  			   	\
-$(LIB_DIR)/Ethernet/src/utility/socket.cpp		\
+$(LIB_DIR)/Ethernet/src/Dhcp.cpp  			   		\
+$(LIB_DIR)/Ethernet/src/utility/socket.cpp			\
 $(LIB_DIR)/Ethernet/src/utility/w5100.cpp			\
 $(LIB_DIR)/Ethernet/src/Ethernet.cpp     			\
 $(LIB_DIR)/Ethernet/src/EthernetUdp.cpp  		   	\
-$(LIB_DIR)/Ethernet/src/EthernetClient.cpp     	\
-$(LIB_DIR)/Ethernet/src/EthernetServer.cpp     	\
+$(LIB_DIR)/Ethernet/src/EthernetClient.cpp     		\
+$(LIB_DIR)/Ethernet/src/EthernetServer.cpp     		\
 $(LIB_DIR)/ArduinoDES/DES.cpp						\
 $(LIB_DIR)/TextFinder/TextFinder.cpp				\
+./sx1272.cpp										\
+./softspi.cpp
 #$(ARDUINO_CORES)/HardwareSerial1.cpp 					\
 #$(ARDUINO_CORES)/HardwareSerial2.cpp 					\
 #$(ARDUINO_CORES)/HardwareSerial3.cpp 					\

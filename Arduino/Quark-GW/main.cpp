@@ -59,8 +59,6 @@ const uint16_t msg_group_len = 2000;
 unsigned long last_post_time = 0;
 
 int push_data(uint64_t data, char serv[]);
-int check_ctrl(char serv[]);
-void process_cmd(int ch, int proto, int clk, int bitlen, uint64_t value);
 byte wan_ok();
 #ifdef NO_DHCP_ROBUST
 byte try_static_ip();
@@ -407,7 +405,6 @@ void loop() {
 	}
 
 
-	//check_ctrl(cos_serv);
 	delay(1100);
 }
 
@@ -529,73 +526,6 @@ int push_data(uint64_t data, char serv[]) {
 	}
 }
 
-int check_ctrl(char serv[]) {
-	if (!client.connected() && wdt_off() && client.connect(serv, 998)) {
-		setup_wdt(9);
-		gen_token(token, uuid, dkey);
-		client.println("GET /v2/node/ctrl HTTP/1.1");
-		client.println("Accept: */ *");
-		client.print("nodid: ");
-		for(int i = 0; i < 19; i++)
-			client.printf("%c", uuid[i]);
-		client.println();
-		client.print("token: ");
-
-		for(int i = 0; i < 24; i++)
-			client.printf("%02X", token[i]);
-		client.println();
-		client.println("Content-Length: 2");
-		client.println("Content-Type: text/html");
-		client.println("Connection: close");
-		client.println();
-		client.println("{}");
-		client.println();
-
-		TextFinder find(client);
-		int nloop = 0;
-		int ch, proto, clk, bitlen;
-		uint64_t value;
-		while(client.connected()) {
-
-			if (find.find("meta")) {
-				ch = find.getValue();
-				proto = find.getValue();
-				clk = find.getValue();
-				bitlen = find.getValue();
-				value = find.getValue64();
-				client.stop();
-#ifdef DEBUG
-				char data_buf[17];
-				sprintf(data_buf, "%04X", (value>>48) & 0xffff);
-				sprintf(data_buf+4, "%04X", (value>>32) & 0xffff);
-				sprintf(data_buf+8, "%04X", (value>>16) & 0xffff);
-				sprintf(data_buf+12, "%04X", (value) & 0xffff);
-
-				Serial.println(ch);
-				Serial.println(proto);
-				Serial.println(clk);
-				Serial.println(bitlen);
-
-				Serial.println(data_buf);
-#endif
-				process_cmd(ch, proto, clk, bitlen, value);
-				return 0;
-			} else {
-				client.stop();
-				return -1;
-			}
-
-			delay(1);
-			nloop++;
-			if (nloop > 5000) {
-				client.stop();
-				return -1;
-			}
-		}
-	}
-	client.stop();
-}
-
 void switch_ch0_tx()
 {
 	// enable the tx433 power
@@ -637,29 +567,4 @@ void disable_ch1_tx()
 {
 	// disable the tx315 power
 	digitalWrite(5, HIGH);
-}
-
-void process_cmd(int ch, int proto, int clk, int bitlen, uint64_t value) {
-
-	// disable the interrupts
-	noInterrupts();
-
-	if (ch == 0) {
-		// 433 tx
-		switch_ch0_tx();
-
-		//radio_send64(value, bitlen);
-
-		switch_ch0_rx();
-	} else if (ch == 1) {
-		// 315 tx
-		enable_ch1_tx();
-
-		//radio_send64(value, bitlen);
-
-		disable_ch1_tx();
-	}
-
-	// enable the interrupts
-	interrupts();
 }
