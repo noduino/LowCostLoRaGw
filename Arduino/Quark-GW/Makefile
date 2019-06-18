@@ -78,9 +78,10 @@ $(LIB_DIR)/Ethernet/src/Ethernet.cpp     			\
 $(LIB_DIR)/Ethernet/src/EthernetUdp.cpp  		   	\
 $(LIB_DIR)/Ethernet/src/EthernetClient.cpp     		\
 $(LIB_DIR)/Ethernet/src/EthernetServer.cpp     		\
-$(LIB_DIR)/ArduinoDES/DES.cpp						\
 $(LIB_DIR)/TextFinder/TextFinder.cpp				\
+$(LIB_DIR)/ArduinoDES/DES.cpp						\
 ./sx1272.cpp										\
+./radio.cpp											\
 ./softspi.cpp
 #$(ARDUINO_CORES)/HardwareSerial1.cpp 					\
 #$(ARDUINO_CORES)/HardwareSerial2.cpp 					\

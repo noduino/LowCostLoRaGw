@@ -22,9 +22,11 @@
 #include <SPIFlash.h>
 #include <EEPROM.h>
 #include <DES.h>
-#include <TextFinder.h>
+//#include <TextFinder.h>
 
 #include <avr/wdt.h>
+
+#include "radio.h"
 
 //#define		DEBUG_SERVER
 #define		DEBUG
@@ -49,9 +51,9 @@ IPAddress ip9(10,0,0,254);
 char cos_serv[] = "api.noduino.org";
 EthernetClient client;
 
-TextFinder finder(client);
+//TextFinder finder(client);
 
-String body = "";
+//String body = "";
 
 // same sec message interval
 const uint16_t msg_group_len = 2000;
@@ -160,20 +162,18 @@ void setup() {
 	// wdt_disable();
 
 #ifdef DEBUG
-	Serial.begin(9600);
+	Serial.begin(115200);
 	Serial.println("Power On now!");
 #endif
+
+	randomSeed(analogRead(14));
+	radio_setup();
 
 #ifdef WITH_FLASH
 	// Pull up pin D5, this is CS signal (active LOW) of SPI flash
 	pinMode(5, OUTPUT);
 	digitalWrite(5, HIGH);
 #endif
-
-	// We use D5 as the power switch of CH1 TX (315)
-	// HIGH to disable the power of CH1 TX
-	pinMode(5, OUTPUT);
-	digitalWrite(5, HIGH);
 
 #ifdef WITH_FLASH
 	// Init SPI flash
@@ -206,6 +206,7 @@ void setup() {
 #endif // FLASH
 
 	init_devid();
+
 #ifdef DEBUG_EEPROM
 	Serial.printf("uuid = %s\n", (char *)uuid);
 	Serial.printf("dkey = %s\n", (char *)dkey);
@@ -216,7 +217,7 @@ void setup() {
 	Serial.println();
 #endif
 
-	body.reserve(100);
+	//body.reserve(100);
 
 	setup_wdt(9);
 	// start the Ethernet connection:
@@ -252,8 +253,11 @@ void setup() {
 #endif
 	}
 #endif
+
+#if 0
 	body = "{";
 	push_data(0x0, cos_serv);
+#endif
 
 	wdt_reset();
 }
@@ -350,64 +354,52 @@ byte wan_ok()
 }
 
 uint64_t old_val = 0;
-int rx_ch, rx_proto, rx_delay, rx_bitlen;
 
 void loop() {
+
+	int i = 0, e = 1;
+
+	char *buf = (char *)malloc(100);
 
 	int try_num = 0;
 	wdt_reset();
 
-	//int rx_flag = radio_available(0);
-	bool rx_flag = true;
+	e = radio_available(buf);
 
-	if (rx_flag) {
+	if (e) {
 
-		//uint64_t radio0_new_val = fetch_rx_data();
-		uint64_t radio0_new_val = 0x55aa;
+		Serial.println("radio data available");
 
-		rx_ch = 0;
-		//rx_proto = radio_get_rx_proto(0);
-		//rx_bitlen = radio_get_rx_bitlen(0);
-
-		// begin new monitor
-		//radio_resetAvailable(0);
-
-		// Same sec event (door open) need interval 2s
-		if((radio0_new_val != old_val) ||
-			(millis() - last_post_time > msg_group_len)) {
-			// It's a new msg group, mark it with a name
-			old_val = radio0_new_val;
-
-			// make sure push the data success
-			try_num = 0;
+		// make sure push the data success
+		try_num = 0;
 #ifdef NETCORE_ROUTER_FIXUP
-			if(wan_ok() == 0) {
+		if(wan_ok() == 0) {
 #ifdef DEBUG
-				Serial.println("wan is offline");
+			Serial.println("wan is offline");
 #endif
-			}
-			wdt_reset();
-#endif
-			while (push_data(radio0_new_val, cos_serv) == -1) {
-				wdt_reset();
-				try_num++;
-#ifdef DEBUG
-				Serial.print("pushed data failed. Try num:");
-				Serial.println(try_num);
-#endif
-				if (try_num >= TRYNUM) break;
-				delay(1200);		// delay 1.2s
-#ifdef DEBUG
-				Serial.println("try next");
-#endif
-			}
 		}
+		wdt_reset();
+#endif
+#if 0
+		while (push_data(radio0_new_val, cos_serv) == -1) {
+			wdt_reset();
+			try_num++;
+#ifdef DEBUG
+			Serial.print("pushed data failed. Try num:");
+			Serial.println(try_num);
+#endif
+			if (try_num >= TRYNUM) break;
+			delay(1200);		// delay 1.2s
+#ifdef DEBUG
+			Serial.println("try next");
+#endif
+		}
+#endif
 	}
-
-
-	delay(1100);
 }
 
+
+#if 0
 // this method makes a HTTP connection to the server:
 //int push_data(uint32_t data, IPAddress &serv) {
 int push_data(uint64_t data, char serv[]) {
@@ -525,46 +517,4 @@ int push_data(uint64_t data, char serv[]) {
 		return -1;
 	}
 }
-
-void switch_ch0_tx()
-{
-	// enable the tx433 power
-	// and enable the TX ANT
-	digitalWrite(A3, HIGH);
-
-	//radio_disable_rx(1);
-	//radio_enable_tx(A4);
-
-	delay(300);
-}
-
-void switch_ch0_rx()
-{
-
-	// disable the tx433 power
-	digitalWrite(A3, LOW);
-
-	// Receiver on inerrupt 0 => that is pin #2
-	//radio_enable_rx(0);
-
-	// Receiver on inerrupt 1 => that is pin #3
-	//radio_enable_rx(1);
-}
-
-void enable_ch1_tx()
-{
-	// enable the tx315 power
-	digitalWrite(5, LOW);
-
-	//radio_disable_rx(0);
-	//radio_disable_rx(1);
-	//radio_enable_tx(A5);
-
-	delay(300);
-}
-
-void disable_ch1_tx()
-{
-	// disable the tx315 power
-	digitalWrite(5, HIGH);
-}
+#endif

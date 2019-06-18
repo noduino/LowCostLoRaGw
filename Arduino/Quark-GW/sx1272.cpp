@@ -25,92 +25,6 @@
 #include "SX1272.h"
 #include "softspi.h"
 
-/*  CHANGE LOGS by C. Pham
- *	August 28th, 2018
- *		- add a small delay in the availableData() loop that decreases the CPU load of a gateway program to 4~5% instead of nearly 100%
- *		- suggested by rertini (https://github.com/CongducPham/LowCostLoRaGw/issues/211)
- *	June 29th, 2018
- *		- SX1272_WRST (not defined by default) controls whether there will be a RST procedure or not. Normally, there is no need for the RST.
- *		- If RST is used, it is currently pin 4 on the Arduino but sometimes there is conflict, so better not use RST
- *  March 28th, 2018
- *		- check at packet reception that the packet type is correct, otherwise discard the packet and returned error code is 5
- *      - add max number of retries for CarrierSense
- *  Feb 28th, 2018
- *		- there is no longer is_binary flag, replaced by is_downlink flag
- *		- the flags are then from left to right: ack_requested|encrypted|with_appkey|is_downlink
- *  Feb 25th, 2018
- *      - use shared payload buffer for packet_sent and packet_received
- *      - use dedicated smaller buffer for ACK
- *  Feb 13th, 2018
- *      - fix bug in availableData() to set back the LoRa module into standby mode. This affected only some radio modules
- *	Jan 19th, 2018
- *		- add a setCSPin(uint8_t cs) function to set the Chip Select (CS) pin
- *		- call sx1272.setCSPin(18) for instance before calling sx1272.ON()
- *		- by default, the CS pin will be set to SX1272_SS defined in SX1272.h
- *  November 10th, 2017
- *		- change the way packet's RSSI is computed
- *  November 7th, 2017
- *      - bug fix in how the CRC is checked at receiver in getPacket() function
- *  November 3rd, 2017
- *      - IMPORTANT: the CS pin is now always pin number 10 on Arduino boards
- *      - if you use the Libelium Multiprotocol shield to connect a Libelium LoRa then change the CS pin to pin 2 in SX1272.h
- *      - CRC (RxPayloadCrcOn) is now ON by default for transmitter side (end-device)
- *  June, 22th, 2017
- *      - setPowerDBM(uint8_t dbm) calls setPower('X') when dbm is set to 20
- *  Apr, 21th, 2017
- *      - change the way timeout are detected: exitTime=millis()+(unsigned long)wait; then millis() < exitTime;
- *  Mar, 26th, 2017
- *      - insert delay(100) before setting radio module to sleep mode. Remove unstability issue
- *      - (proposed by escyes - https://github.com/CongducPham/LowCostLoRaGw/issues/53#issuecomment-289237532)
- *  Jan, 11th, 2017
- *      - fix bug in getRSSIpacket() when SNR < 0 thanks to John Rohde from Aarhus University
- *  Dec, 17th, 2016
- *      - fix bug making -DPABOOST in radio.makefile inoperant
- *  Dec, 1st, 2016
- *      - add RSSI computation while performing CAD with doCAD()
- *      - WARNING: the SX1272 lib for gateway (Raspberry) does not have this functionality
- *  Nov, 26th, 2016
- *		- add preliminary support for ToA limitation
- *      - when in "production" mode, uncomment #define LIMIT_TOA
- *  Nov, 16th, 2016
- *		- provide better power management mechanisms
- *		- manage PA_BOOST and dBm setting
- *  Jan, 23rd, 2016
- *      - the packet format at transmission does not use the original Libelium format anymore
- *      * the retry field is removed therefore all operations using retry will probably not work well, not tested though
- *          - therefore DO NOT use sendPacketTimeoutACKRetries()
- *          - the reason is that we do not want to have a reserved byte after the payload
- *      * the length field is removed because it is much better to get the packet length at the reception side
- *      * after the dst field, we inserted a packet type field to better identify the packet type: DATA, ACK, encryption, app key,...
- *          - the format is now dst(1B) ptype(1B) src(1B) seq(1B) payload(xB)
- *          - ptype is decomposed in 2 parts type(4bits) flags(4bits)
- *          - type can take current value of DATA=0001 and ACK=0010
- *          - the flags are from left to right: ack_requested|encrypted|with_appkey|is_binary
- *          - ptype can be set with setPacketType(), see constant defined in SX1272.h
- *          - the header length is then 4 instead of 5
- *  Jan, 16th, 2016
- *      - add support for SX1276, automatic detect
- *      - add LF/HF calibaration copied from LoRaMAC-Node. Don't know if it is really necessary though
- *      - change various radio settings
- *  Dec, 10th, 2015
- *      - add SyncWord for test with simple LoRaWAN
- *      - add mode 11 that have BW=125, CR=4/5, SF=7 on channel 868.1MHz
- *          - use following in your code if (loraMode==11) { e = sx1272.setChannel(CH_18_868); }
- *  Nov, 13th, 2015
- *      - add CarrierSense() to perform some Listen Before Talk procedure
- *      - add dynamic ACK suport
- *          - compile with W_REQUESTED_ACK, retry field is used to indicate at the receiver
- *			  that an ACK should be sent
- *          - receiveWithTimeout() has been modified to send an ACK if retry is 1
- *          - at sender side, sendPacketTimeoutACK() has been modified to indicate
- *			  whether retry should be set to 1 or not in setPacket()
- *          - receiver should always use receiveWithTimeout() while sender decides to use
- *			  sendPacketTimeout() or sendPacketTimeoutACK()
- *  Jun, 2015
- *      - Add time on air computation and CAD features
-*/
-
-// Added by C. Pham
 // based on SIFS=3CAD
 uint8_t sx1272_SIFS_value[11] = { 0, 183, 94, 44, 47, 23, 24, 12, 12, 7, 4 };
 uint8_t sx1272_CAD_value[11] = { 0, 62, 31, 16, 16, 8, 9, 5, 3, 1, 1 };
@@ -253,8 +167,6 @@ uint8_t SX1272::ON()
 	Serial.println();
 	Serial.println(F("Starting 'ON'"));
 #endif
-
-	//#define USE_SPI_SETTINGS
 
 #ifdef USE_SOFTSPI
 	spi_init();
