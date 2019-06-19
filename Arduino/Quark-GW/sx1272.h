@@ -22,11 +22,6 @@
  *  Implementation:    Covadonga Albiñana & Victor Boria
  */
 
-/*
- * Many changes have been performed to v1.1 released by Libelium
- * C. Pham, see change logs in SX1272.cpp
- */
-
 #ifndef SX1272_h
 #define SX1272_h
 
@@ -39,57 +34,45 @@
 #include <inttypes.h>
 #endif
 
-#define DEBUG_CAD	1
+#define DEBUG_CAD					1
 
-#define USE_SOFTSPI		1
+#define USE_SOFTSPI					1
 
-// added by C. Pham
-// do not remove!
 #define W_REQUESTED_ACK
 //#define W_NET_KEY
 //#define W_INITIALIZATION
 
-//it is not mandatory to wire this pin
-//we take pin 4 as it is available on many boards
 #define SX1272_WRST
 
 #ifdef USE_SOFTSPI
-#define SX1272_RST  6
+#define SX1272_RST					6
 #else
-#define SX1272_RST  5
+#define SX1272_RST					5
 #endif
 
 #if defined ARDUINO_AVR_FEATHER32U4 || defined ARDUINO_SAMD_FEATHER_M0
-// on the Adafruit Feather, the RFM95W is embeded and CS pin is normally on pin 8
-#define SX1272_SS 8
+#define SX1272_SS					8
 #elif defined ARDUINO_ESP8266_ESP01
-#define SX1272_SS 15
+#define SX1272_SS					15
 #else
-// starting from November 3rd, 2017, the CS pin is always pin number 10 on Arduino boards
-// if you use the Libelium Multiprotocol shield to connect a Libelium LoRa then change the CS pin to pin 2
-#define SX1272_SS 10
+#define SX1272_SS 					10
 #endif
 
-#define SX1272Chip  0
-#define SX1276Chip  1
-#define SX1278Chip  1
-// end
+#define SX1272Chip  				0
+#define SX1276Chip  				1
+#define SX1278Chip  				1
 
-#define SX1272_debug_mode 1
-// added by C. Pham
+#define SX1272_debug_mode 			1
 //#define SX1272_led_send_receive
 
 #ifdef SX1272_led_send_receive
-#define SX1272_led_send 2
-#define SX1272_led_receive 3
+#define SX1272_led_send 			2
+#define SX1272_led_receive			3
 #endif
 
-//! MACROS //
-#define bitRead(value, bit) (((value) >> (bit)) & 0x01)	// read a bit
-#define bitSet(value, bit) ((value) |= (1UL << (bit)))	// set bit to '1'
+#define bitRead(value, bit) (((value) >> (bit)) & 0x01)		// read a bit
+#define bitSet(value, bit) ((value) |= (1UL << (bit)))		// set bit to '1'
 #define bitClear(value, bit) ((value) &= ~(1UL << (bit)))	// set bit to '0'
-
-//! REGISTERS //
 
 #define        REG_FIFO        					0x00
 #define        REG_OP_MODE        				0x01
@@ -401,9 +384,6 @@ const uint8_t INCORRECT_PACKET_TYPE = 2;
 #define SX1272_ERROR_ACK        3
 #define SX1272_ERROR_TOA        4
 
-//! Structure :
-/*!
- */
 struct pack {
 #ifdef W_NET_KEY
 	uint8_t netkey[NET_KEY_LENGTH];
@@ -431,6 +411,8 @@ class SX1272 {
 
 	// clears the interruption flags.
 	void clearFlags();
+
+	void sx1278_qsetup(uint32_t freq);
 
 	uint8_t setLORA();
 	uint8_t setFSK();
