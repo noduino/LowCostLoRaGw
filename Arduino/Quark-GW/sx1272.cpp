@@ -248,7 +248,6 @@ uint8_t SX1272::ON()
 void SX1272::OFF()
 {
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'OFF'"));
 #endif
 
@@ -259,7 +258,6 @@ void SX1272::OFF()
 
 #if (SX1272_debug_mode > 1)
 	Serial.println(F("## Setting OFF ##"));
-	Serial.println();
 #endif
 }
 
@@ -378,7 +376,6 @@ uint8_t SX1272::setLORA()
 	byte st0;
 
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'setLORA'"));
 #endif
 
@@ -413,10 +410,7 @@ uint8_t SX1272::setLORA()
 		_modem = FSK;
 		state = 1;
 #if (SX1272_debug_mode > 1)
-		Serial.
-		    println(F
-			    ("** There has been an error while setting LoRa **"));
-		Serial.println();
+		Serial.println(F("** There has been an error while setting LoRa **"));
 #endif
 	}
 	return state;
@@ -436,11 +430,9 @@ uint8_t SX1272::setFSK()
 	byte config1;
 
 	if (_board == SX1276Chip)
-		Serial.
-		    println(F("Warning: FSK has not been tested on SX1276!"));
+		Serial.println(F("Warning: FSK has not been tested on SX1276!"));
 
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'setFSK'"));
 #endif
 
@@ -463,16 +455,12 @@ uint8_t SX1272::setFSK()
 		state = 0;
 #if (SX1272_debug_mode > 1)
 		Serial.println(F("## FSK set with success ##"));
-		Serial.println();
 #endif
 	} else {		// LoRa mode
 		_modem = LORA;
 		state = 1;
 #if (SX1272_debug_mode > 1)
-		Serial.
-		    println(F
-			    ("** There has been an error while setting FSK **"));
-		Serial.println();
+		Serial.println(F("** There has been an error while setting FSK **"));
 #endif
 	}
 	return state;
@@ -491,7 +479,6 @@ uint8_t SX1272::getMode()
 	byte value = 0x00;
 
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'getMode'"));
 #endif
 
@@ -1729,7 +1716,6 @@ uint8_t SX1272::setSF(uint8_t spr)
 boolean SX1272::isBW(uint16_t band)
 {
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'isBW'"));
 #endif
 
@@ -2257,6 +2243,7 @@ boolean SX1272::isChannel(uint32_t ch)
 
 	// Checking available values for _channel
 	switch (ch) {
+#if 0
 	case CH_04_868:
 	case CH_05_868:
 	case CH_06_868:
@@ -2285,6 +2272,7 @@ boolean SX1272::isChannel(uint32_t ch)
 	case CH_10_900:
 	case CH_11_900:
 	case CH_12_900:
+#endif
 	case CH_00_433:
 	case CH_01_433:
 	case CH_02_433:
@@ -3005,7 +2993,6 @@ int8_t SX1272::getSNR()
 	byte value;
 
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'getSNR'"));
 #endif
 
@@ -3028,13 +3015,11 @@ int8_t SX1272::getSNR()
 		Serial.print(F("## SNR value is "));
 		Serial.print(_SNR, DEC);
 		Serial.println(F(" ##"));
-		Serial.println();
 #endif
 	} else {		// forbidden command if FSK mode
 		state = -1;
 #if (SX1272_debug_mode > 0)
 		Serial.println(F("** SNR does not exist in FSK mode **"));
-		Serial.println();
 #endif
 	}
 	return state;
@@ -3054,7 +3039,6 @@ uint8_t SX1272::getRSSI()
 	int total = 5;
 
 #if (SX1272_debug_mode > 1)
-	Serial.println();
 	Serial.println(F("Starting 'getRSSI'"));
 #endif
 
@@ -3078,7 +3062,6 @@ uint8_t SX1272::getRSSI()
 		Serial.print(F("## RSSI value is "));
 		Serial.print(_RSSI, DEC);
 		Serial.println(F(" ##"));
-		Serial.println();
 #endif
 	} else {
 		/// FSK mode
@@ -3096,7 +3079,6 @@ uint8_t SX1272::getRSSI()
 		Serial.print(F("## RSSI value is "));
 		Serial.print(_RSSI);
 		Serial.println(F(" ##"));
-		Serial.println();
 #endif
 	}
 	return state;
@@ -3133,41 +3115,28 @@ int16_t SX1272::getRSSIpacket()
 				// added by C. Pham, using Semtech SX1272 rev3 March 2015
 				// for SX1272 we use -139, for SX1276, we use -157
 				// then for SX1276 when using low-frequency (i.e. 433MHz) then we use -164
-				//_RSSIpacket = -(OFFSET_RSSI+(_board==SX1276Chip?18:0)+(_channel<CH_04_868?7:0)) + (double)_RSSIpacket + (double)_rawSNR*0.25;
-				_RSSIpacket =
-				    -(OFFSET_RSSI +
-				      (_board ==
-				       SX1276Chip ? 18 : 0) + (_channel <
-							       CH_04_868 ? 7 :
-							       0)) +
-				    (double)_RSSIpacket + (double)_SNR *0.25;
+				_RSSIpacket = -(OFFSET_RSSI + (_board == SX1276Chip ? 18 : 0)
+					+ (_channel < CH_04_868 ? 7 : 0))
+					+ (double)_RSSIpacket + (double)_SNR *0.25;
 				state = 0;
 			} else {
 				// commented by C. Pham
 				//_RSSIpacket = readRegister(REG_PKT_RSSI_VALUE);
-				_RSSIpacket =
-				    -(OFFSET_RSSI +
-				      (_board ==
-				       SX1276Chip ? 18 : 0) + (_channel <
-							       CH_04_868 ? 7 :
-							       0)) +
-				    (double)_RSSIpacket *16.0 / 15.0;
-				//end
+				_RSSIpacket = -(OFFSET_RSSI + (_board == SX1276Chip ? 18 : 0)
+					+ (_channel < CH_04_868 ? 7 : 0))
+					+ (double)_RSSIpacket *16.0 / 15.0;
 				state = 0;
 			}
 #if (SX1272_debug_mode > 0)
 			Serial.print(F("## RSSI packet value is "));
 			Serial.print(_RSSIpacket, DEC);
 			Serial.println(F(" ##"));
-			Serial.println();
 #endif
 		}
 	} else {		// RSSI packet doesn't exist in FSK mode
 		state = -1;
 #if (SX1272_debug_mode > 0)
-		Serial.
-		    println(F("** RSSI packet does not exist in FSK mode **"));
-		Serial.println();
+		Serial.println(F("** RSSI packet does not exist in FSK mode **"));
 #endif
 	}
 	return state;
@@ -5477,23 +5446,10 @@ uint16_t SX1272::getToA(uint8_t pl)
 	return _currentToA;
 }
 
-void SX1272::CarrierSense(uint8_t cs)
-{
-
-	if (cs == 1)
-		CarrierSense1();
-
-	if (cs == 2)
-		CarrierSense2();
-
-	if (cs == 3)
-		CarrierSense3();
-}
-
 // need to set _send_cad_number to a value > 0
 // we advise using _send_cad_number=3 for a SIFS and _send_cad_number=9 for a DIFS
 // prior to send any data
-void SX1272::CarrierSense1()
+void SX1272::CarrierSense()
 {
 
 	int e;
@@ -5601,284 +5557,6 @@ void SX1272::CarrierSense1()
 				else
 					carrierSenseRetry = false;
 			}
-		} while (carrierSenseRetry && --retries);
-	}
-}
-
-void SX1272::CarrierSense2()
-{
-
-	int e;
-	bool carrierSenseRetry = false;
-	uint8_t foundBusyDuringDIFSafterBusyState = 0;
-	uint8_t retries = 3;
-	uint8_t DIFSretries = 8;
-	uint8_t n_collision = 0;
-	// upper bound of the random backoff timer
-	uint8_t W = 2;
-	uint32_t max_toa = sx1272.getToA(MAX_LENGTH);
-
-	// do CAD for DIFS=9CAD
-	Serial.print(F("--> CS2\n"));
-
-	if (_send_cad_number && _enableCarrierSense) {
-
-		do {
-			DIFSretries = 8;
-			do {
-				//D f W
-				//2 2 4
-				//3 3 8
-				//4 4 16
-				//5 5 16
-				//6 6 16
-				//...
-
-				if (foundBusyDuringDIFSafterBusyState > 1
-				    && foundBusyDuringDIFSafterBusyState < 5)
-					W = W * 2;
-
-				// check for free channel (SIFS/DIFS)
-				_startDoCad = millis();
-				e = sx1272.doCAD(_send_cad_number);
-				_endDoCad = millis();
-
-				Serial.print(F("--> DIFS "));
-				Serial.print(_endDoCad - _startDoCad);
-				Serial.println();
-
-				// successull SIFS/DIFS
-				if (!e) {
-
-					// previous collision detected
-					if (n_collision) {
-
-						Serial.
-						    print(F("--> count for "));
-						// count for random number of CAD/SIFS/DIFS?
-						// SIFS=3CAD
-						// DIFS=9CAD
-						uint8_t w =
-						    random(0,
-							   W *
-							   _send_cad_number);
-
-						Serial.println(w);
-
-						int busyCount = 0;
-						bool nowBusy = false;
-
-						do {
-
-							if (nowBusy)
-								e = sx1272.
-								    doCAD
-								    (_send_cad_number);
-							else
-								e = sx1272.
-								    doCAD(1);
-
-							if (nowBusy && e) {
-								Serial.
-								    print(F
-									  ("#"));
-								busyCount++;
-							} else if (nowBusy
-								   && !e) {
-								Serial.
-								    print(F
-									  ("|"));
-								nowBusy = false;
-							} else if (!e) {
-								w--;
-								Serial.
-								    print(F
-									  ("-"));
-							} else {
-								Serial.
-								    print(F
-									  ("*"));
-								nowBusy = true;
-								busyCount++;
-							}
-
-						} while (w);
-
-						// if w==0 then we exit and
-						// the packet will be sent
-						Serial.println();
-						Serial.
-						    print(F
-							  ("--> busy during "));
-						Serial.println(busyCount);
-					} else {
-						Serial.println(F("OK1"));
-
-						if (_extendedIFS) {
-							// wait for random number of CAD
-							uint8_t w =
-							    random(1, 8);
-
-							Serial.
-							    print(F
-								  ("--> extended wait for "));
-							Serial.println(w);
-							Serial.
-							    print(F(" CAD = "));
-							Serial.
-							    println
-							    (sx1272_CAD_value
-							     [_loraMode] * w);
-
-							delay(sx1272_CAD_value
-							      [_loraMode] * w);
-
-							// check for free channel (SIFS/DIFS) once again
-							_startDoCad = millis();
-							e = sx1272.
-							    doCAD
-							    (_send_cad_number);
-							_endDoCad = millis();
-
-							Serial.
-							    print(F
-								  ("--> CAD "));
-							Serial.
-							    println(_endDoCad -
-								    _startDoCad);
-
-							if (!e)
-								Serial.
-								    println
-								    ("OK2");
-							else
-								Serial.
-								    println
-								    ("#2");
-						}
-					}
-				} else {
-					n_collision++;
-					foundBusyDuringDIFSafterBusyState++;
-					Serial.print(F("###"));
-					Serial.println(n_collision);
-
-					Serial.
-					    println(F("--> CAD until clear"));
-
-					int busyCount = 0;
-
-					_startDoCad = millis();
-					do {
-
-						e = sx1272.doCAD(1);
-
-						if (e) {
-							Serial.print(F("R"));
-							busyCount++;
-						}
-					} while (e
-						 && (millis() - _startDoCad <
-						     2 * max_toa));
-
-					_endDoCad = millis();
-
-					Serial.println();
-					Serial.print(F("--> busy during "));
-					Serial.println(busyCount);
-
-					Serial.print(F("--> wait "));
-					Serial.println(_endDoCad - _startDoCad);
-
-					// to perform a new DIFS
-					Serial.println(F("--> retry"));
-					e = 1;
-				}
-			} while (e && --DIFSretries);
-
-			// CAD is OK, but need to check RSSI
-			if (_RSSIonSend) {
-
-				e = getRSSI();
-				uint8_t rssi_retry_count = 8;
-
-				if (!e) {
-
-					do {
-						getRSSI();
-						Serial.print(F("--> RSSI "));
-						Serial.print(_RSSI);
-						Serial.println();
-						rssi_retry_count--;
-						delay(1);
-					} while (_RSSI > -90
-						 && rssi_retry_count);
-				} else
-					Serial.print(F("--> RSSI error\n"));
-
-				if (!rssi_retry_count)
-					carrierSenseRetry = true;
-				else
-					carrierSenseRetry = false;
-			}
-		} while (carrierSenseRetry && --retries);
-	}
-}
-
-void SX1272::CarrierSense3()
-{
-
-	int e;
-	bool carrierSenseRetry = false;
-	uint8_t n_collision = 0;
-	uint8_t retries = 3;
-	uint8_t n_cad = 9;
-	uint32_t max_toa = sx1272.getToA(MAX_LENGTH);
-
-	Serial.println(F("--> CS3"));
-
-	//unsigned long end_carrier_sense=0;
-
-	if (_send_cad_number && _enableCarrierSense) {
-		do {
-			Serial.print(F("--> CAD for MaxToa="));
-			Serial.println(max_toa);
-
-			//end_carrier_sense=millis()+(max_toa/n_cad)*(n_cad-1);
-
-			for (int i = 0; i < n_cad; i++) {
-				_startDoCad = millis();
-				e = sx1272.doCAD(1);
-				_endDoCad = millis();
-
-				if (!e) {
-					Serial.print(_endDoCad);
-					Serial.print(F(" 0 "));
-					Serial.print(sx1272._RSSI);
-					Serial.print(F(" "));
-					Serial.println(_endDoCad - _startDoCad);
-				} else
-					continue;
-
-				// wait in order to have n_cad CAD operations during max_toa
-				delay(max_toa / (n_cad - 1) -
-				      (millis() - _startDoCad));
-			}
-
-			if (e) {
-				n_collision++;
-				Serial.print(F("#"));
-				Serial.println(n_collision);
-
-				Serial.print(F("Busy. Wait MaxToA="));
-				Serial.println(max_toa);
-				delay(max_toa);
-				// to perform a new max_toa waiting
-				Serial.println(F("--> retry"));
-				carrierSenseRetry = true;
-			} else
-				carrierSenseRetry = false;
-
 		} while (carrierSenseRetry && --retries);
 	}
 }

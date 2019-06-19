@@ -622,7 +622,8 @@ class SX1272 {
 	// It gets the internal temperature of the module.
 	uint8_t getTemp();
 
-	// added by C. Pham
+	void CarrierSense();
+
 	void setPacketType(uint8_t type);
 	void RxChainCalibration();
 	uint8_t doCAD(uint8_t counter);
