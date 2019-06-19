@@ -34,9 +34,9 @@
 //#define RECEIVE_ALL 
 
 #ifdef BAND433
-#define DEFAULT_CHANNEL			CH_00_433	// 433.0MHz
+#define DEFAULT_CH				CH_00_433	// 433.0MHz
 #elif defined BAND470
-#define DEFAULT_CHANNEL			CH_00_470	// 470.0MHz
+#define DEFAULT_CH				CH_00_470	// 470.0MHz
 #endif
 
 #define INFO_S(fmt,param)			Serial.print(F(param))

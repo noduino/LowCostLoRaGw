@@ -25,13 +25,14 @@ bool optHEX = false;
 
 void radio_setup()
 {
+#if 0
 	sx1272.ON();		// power on the module
 
 	// BW=125KHz, SF=12, CR=4/5, sync=0x34
 	sx1272.setMode(LORA_MODE);
 
 	// Select frequency channel
-	sx1272.setChannel(DEFAULT_CHANNEL);
+	sx1272.setChannel(DEFAULT_CH);
 
 #ifdef PABOOST
 	// Select amplifier line; PABOOST or RFO
@@ -39,6 +40,9 @@ void radio_setup()
 #endif
 
 	sx1272.setPowerDBM((uint8_t) MAX_DBM);
+#else
+	sx1272.sx1278_qsetup(CH_00_433);
+#endif
 
 	// Set the node address and print the result
 	//sx1272.setNodeAddress(LORA_ADDR);
@@ -92,11 +96,7 @@ int CarrierSense(bool onlyOnce = false)
 
 					if (extendedIFS) {
 						// wait for random number of CAD
-#ifdef ARDUINO
 						uint8_t w = random(1, 8);
-#else
-						uint8_t w = rand() % 8 + 1;
-#endif
 
 						INFO_S("%s", "--> waiting for ");
 						INFO("%d", w);
@@ -126,11 +126,7 @@ int CarrierSense(bool onlyOnce = false)
 						return 1;
 
 					// wait for random number of DIFS
-#ifdef ARDUINO
 					uint8_t w = random(1, 8);
-#else
-					uint8_t w = rand() % 8 + 1;
-#endif
 
 					INFO_S("%s", "--> waiting for ");
 					INFO("%d", w);

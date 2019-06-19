@@ -32,7 +32,7 @@
 //#define RECEIVE_ALL 
 
 // use the dynamic ACK feature of our modified SX1272 lib
-//#define GW_AUTO_ACK
+#define GW_AUTO_ACK
 
 #ifdef BAND433
 const uint32_t DEFAULT_CHANNEL = CH_00_433;	// 433.3MHz
@@ -78,6 +78,7 @@ bool optHEX = false;
 
 void radio_setup()
 {
+#if 0
 	sx1272.ON();		// power on the module
 
 	// BW=125KHz, SF=12, CR=4/5, sync=0x34
@@ -92,6 +93,9 @@ void radio_setup()
 #endif
 
 	sx1272.setPowerDBM((uint8_t) MAX_DBM);
+#else
+	sx1272.sx1278_qsetup(CH_00_433);
+#endif
 
 	// Set the node address and print the result
 	//sx1272.setNodeAddress(loraAddr);
@@ -147,11 +151,7 @@ int CarrierSense(bool onlyOnce = false)
 
 					if (extendedIFS) {
 						// wait for random number of CAD
-#ifdef ARDUINO
 						uint8_t w = random(1, 8);
-#else
-						uint8_t w = rand() % 8 + 1;
-#endif
 
 						INFO_S("%s", "--> waiting for ");
 						INFO("%d", w);
@@ -181,11 +181,7 @@ int CarrierSense(bool onlyOnce = false)
 						return 1;
 
 					// wait for random number of DIFS
-#ifdef ARDUINO
 					uint8_t w = random(1, 8);
-#else
-					uint8_t w = rand() % 8 + 1;
-#endif
 
 					INFO_S("%s", "--> waiting for ");
 					INFO("%d", w);
@@ -243,7 +239,6 @@ void loop(void)
 
 	if (status_counter == 60 || status_counter == 0) {
 		INFO_S("%s", "^$Low-level gw status ON\n");
-		FLUSHOUTPUT;
 		status_counter = 0;
 	}
 
@@ -264,16 +259,10 @@ void loop(void)
 		if (e == 2) {
 			// Power OFF the module
 			sx1272.OFF();
-			radioON = false;
 			INFO_S("%s", "^$Resetting radio module\n");
-			e = sx1272.ON();
-			INFO_S("%s", "^$Setting power ON: state ");
-			INFOLN("%d", e);
 
-			if (!e) {
-				radioON = true;
-				radio_setup();
-			}
+			radio_setup();
+
 			// to start over
 			status_counter = 0;
 			e = 1;
@@ -323,7 +312,7 @@ void loop(void)
 		// set back the gateway address
 		sx1272._nodeAddress = loraAddr;
 #else
-		sx1272.getSNR();
+		//sx1272.getSNR();
 		sx1272.getRSSIpacket();
 
 		// provide a short output for external program to have information about the received packet
