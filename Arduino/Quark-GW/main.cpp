@@ -362,7 +362,7 @@ void loop() {
 	char *buf = (char *)malloc(100);
 
 	int try_num = 0;
-	wdt_reset();
+	wdt_off();
 
 	e = radio_available(buf);
 
